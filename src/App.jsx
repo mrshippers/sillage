@@ -66,10 +66,10 @@ const FRAGRANCES = [
     effect: "Unforgettable presence. Rooms remember you." },
   { id: 8, name: "Le Labo Tabac 26", house: "Le Labo", short: "Tabac 26", notes: ["Bay Leaf", "Fig", "Hay", "Tobacco", "Cedar"], family: "Woody Tobacco", season: ["Autumn", "Winter"], mood: "Intellectual", color: "#6b5e4f",
     weight: "medium", warmth: 7, freshness: 3, projection: 5, longevity: 7, sweet: 2, dark: 6, floral: 0, spicy: 3, green: 4, woody: 8, smoky: 3, musky: 1, resinous: 2,
-    occasions: ["work", "reading", "gallery", "casual", "meeting"],
-    weather: ["cool", "cold", "overcast", "rainy"],
-    energy: ["focused", "calm", "introspective"],
-    time: ["morning", "afternoon", "evening"],
+    occasions: ["reading", "gallery", "solo"],
+    weather: ["cold", "overcast", "rainy"],
+    energy: ["introspective", "calm"],
+    time: ["afternoon", "evening"],
     description: "A dog-eared novel. Dried fig leaves and afternoon light.",
     pulsePoints: "Wrists and inner elbows — a personal aura, not a broadcast.",
     effect: "Quiet depth. The scent of someone with something to say." },
@@ -248,20 +248,89 @@ const ENERGY_MAP = { "Calm & Centred": ["calm", "introspective", "focused"], "Co
 const TIME_MAP = { "Morning": "morning", "Afternoon": "afternoon", "Evening": "evening", "Night": "night" };
 
 function scoreFragrance(f, weather, occasion, energy, time) {
-  let score = 0, maxScore = 0;
+  let score = 0;
+  const dims = [];
+
+  // ── WEATHER (0–30) ──
   if (weather.length) {
-    maxScore += 30;
     const wKeys = weather.map(w => WEATHER_MAP[w]).filter(Boolean);
-    score += (wKeys.filter(w => f.weather.includes(w)).length / Math.max(wKeys.length, 1)) * 30;
-    if (wKeys.some(w => ["hot", "warm", "humid"].includes(w)) && f.weight === "heavy") score -= 12;
-    if (wKeys.some(w => ["cold", "cool"].includes(w)) && f.weight === "light") score -= 6;
-    if (wKeys.some(w => ["hot", "warm", "sunny"].includes(w)) && f.freshness >= 7) score += 8;
-    if (wKeys.some(w => ["cold", "cool", "rainy", "fog"].includes(w)) && f.warmth >= 7) score += 8;
+    const wMatch = wKeys.filter(w => f.weather.includes(w)).length;
+    if (wMatch === 0) {
+      score -= 15; // hard miss — wrong weather entirely
+    } else {
+      const matchRatio = wMatch / wKeys.length;
+      // Specificity bonus: fewer tagged weathers = more specialist = bonus when matched
+      const specificity = 1 + (1 - f.weather.length / 10) * 0.4;
+      score += matchRatio * 25 * specificity;
+    }
+    // Physical modifiers
+    const isHot = wKeys.some(w => ["hot", "warm", "humid"].includes(w));
+    const isCold = wKeys.some(w => ["cold", "cool", "rainy", "fog"].includes(w));
+    if (isHot && f.weight === "heavy") score -= 15;
+    if (isHot && f.weight === "light" && f.freshness >= 6) score += 8;
+    if (isCold && f.warmth >= 7) score += 8;
+    if (isCold && f.weight === "light" && f.warmth <= 4) score -= 8;
+    dims.push("w");
   }
-  if (occasion) { maxScore += 30; const oKeys = OCCASION_MAP[occasion] || []; score += (oKeys.filter(o => f.occasions.includes(o)).length / Math.max(oKeys.length, 1)) * 30; }
-  if (energy) { maxScore += 25; const eKeys = ENERGY_MAP[energy] || []; score += (eKeys.filter(e => f.energy.includes(e)).length / Math.max(eKeys.length, 1)) * 25; }
-  if (time) { maxScore += 15; const tKey = TIME_MAP[time]; if (f.time.includes(tKey) || f.time.includes("all day")) score += 15; if (tKey === "morning" && f.weight === "heavy") score -= 8; if (tKey === "night" && f.warmth >= 7) score += 5; }
-  return maxScore > 0 ? Math.min(Math.round((Math.max(score, 0) / maxScore) * 100), 100) : 0;
+
+  // ── OCCASION (0–25) ──
+  if (occasion) {
+    const oKeys = OCCASION_MAP[occasion] || [];
+    const oMatch = oKeys.filter(o => f.occasions.includes(o)).length;
+    if (oMatch === 0) {
+      score -= 10; // wrong occasion
+    } else {
+      const specificity = 1 + (1 - f.occasions.length / 10) * 0.5;
+      score += (oMatch / oKeys.length) * 22 * specificity;
+    }
+    // Occasion-specific bonuses
+    if (occasion === "Date" && f.sweet >= 5 && f.warmth >= 6) score += 5;
+    if (occasion === "Work / Office" && f.projection <= 5 && f.dark <= 5) score += 4;
+    if (occasion === "Night Out" && f.projection >= 6 && f.freshness >= 5) score += 5;
+    if (occasion === "Brunch" && f.freshness >= 6 && f.weight === "light") score += 5;
+    if (occasion === "Event / Occasion" && f.projection >= 6 && f.longevity >= 7) score += 4;
+    dims.push("o");
+  }
+
+  // ── ENERGY (0–20) ──
+  if (energy) {
+    const eKeys = ENERGY_MAP[energy] || [];
+    const eMatch = eKeys.filter(e => f.energy.includes(e)).length;
+    if (eMatch === 0) {
+      score -= 8;
+    } else {
+      score += (eMatch / eKeys.length) * 18;
+    }
+    // Mood-scent synergy
+    if (energy === "Romantic" && f.sweet >= 5) score += 3;
+    if (energy === "Calm & Centred" && f.projection <= 5) score += 3;
+    if (energy === "Energetic" && f.freshness >= 6) score += 3;
+    dims.push("e");
+  }
+
+  // ── TIME (0–15) ──
+  if (time) {
+    const tKey = TIME_MAP[time];
+    if (f.time.includes(tKey) || f.time.includes("all day")) {
+      const timeSpecificity = 1 + (1 - f.time.length / 4) * 0.3;
+      score += 13 * timeSpecificity;
+    } else {
+      score -= 8; // wrong time of day
+    }
+    // Hard modifiers
+    if (tKey === "morning" && f.weight === "heavy" && f.dark >= 7) score -= 10;
+    if (tKey === "morning" && f.freshness >= 7) score += 5;
+    if (tKey === "night" && f.warmth >= 7 && f.projection >= 6) score += 6;
+    if (tKey === "night" && f.freshness >= 7 && f.warmth <= 3) score -= 4;
+    dims.push("t");
+  }
+
+  // Normalise to 0–100 based on dimensions used
+  const maxPossible = dims.length === 0 ? 1 : dims.reduce((s, d) => {
+    return s + ({ w: 38, o: 31, e: 21, t: 24 }[d] || 0);
+  }, 0);
+  const pct = Math.round((Math.max(score, 0) / maxPossible) * 100);
+  return Math.min(pct, 100);
 }
 
 function getLayerPartner(primary) {
@@ -338,18 +407,19 @@ export default function App() {
   const getScoreColor = (score) => score >= 75 ? "#7ab87a" : score >= 50 ? gold : score >= 30 ? "#c49a6a" : "#a06060";
 
   return (
-    <div style={{ minHeight: "100vh", background: "#0d0b09", color: "#e8e0d4", fontFamily: "'Cormorant Garamond', 'Georgia', serif", position: "relative", overflow: "hidden" }}>
-      <div style={{ position: "fixed", inset: 0, opacity: 0.04, pointerEvents: "none", zIndex: 0, background: "radial-gradient(ellipse at 20% 50%, #c9a96e 0%, transparent 50%), radial-gradient(ellipse at 80% 20%, #6b4a3a 0%, transparent 50%)" }} />
+    <div style={{ minHeight: "100vh", background: "#080706", color: "#e8e0d4", fontFamily: "'Cormorant Garamond', 'Georgia', serif", position: "relative", overflow: "hidden" }}>
+      <div style={{ position: "fixed", inset: 0, opacity: 0.035, pointerEvents: "none", zIndex: 0, background: "radial-gradient(ellipse at 20% 50%, #c9a96e 0%, transparent 45%), radial-gradient(ellipse at 80% 20%, #5a4a3a 0%, transparent 40%), radial-gradient(ellipse at 50% 80%, #3a3a4a 0%, transparent 35%)" }} />
+      <div style={{ position: "fixed", inset: 0, opacity: 0.015, pointerEvents: "none", zIndex: 0, background: "linear-gradient(135deg, rgba(255,255,255,0.03) 0%, transparent 40%, rgba(255,255,255,0.02) 60%, transparent 100%)", mixBlendMode: "overlay" }} />
       <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&display=swap" rel="stylesheet" />
 
       <div style={{ position: "relative", zIndex: 1, maxWidth: 900, margin: "0 auto", padding: "0 24px" }}>
         {/* Header */}
-        <header style={{ padding: "48px 0 32px", borderBottom: "1px solid rgba(201,169,110,0.15)", animation: mounted ? "fadeDown 0.8s ease both" : "none" }}>
+        <header style={{ padding: "48px 0 28px", borderBottom: "1px solid rgba(201,169,110,0.12)", animation: mounted ? "fadeDown 0.8s ease both" : "none" }}>
           <div style={{ display: "flex", alignItems: "baseline", gap: 16, flexWrap: "wrap" }}>
             <h1 style={{ fontSize: 42, fontWeight: 300, letterSpacing: "0.12em", margin: 0, color: gold, textTransform: "uppercase" }}>Sillage</h1>
             <span style={{ fontSize: 11, letterSpacing: "0.3em", color: "rgba(201,169,110,0.4)", textTransform: "uppercase", fontFamily: sans }}>Fragrance Wardrobe</span>
           </div>
-          <p style={{ margin: "12px 0 0", fontSize: 14, color: "rgba(232,224,212,0.35)", fontFamily: sans, letterSpacing: "0.04em", fontWeight: 300, fontStyle: "italic" }}>
+          <p style={{ margin: "4px 0 0", fontSize: 13, color: "rgba(232,224,212,0.3)", fontFamily: sans, letterSpacing: "0.06em", fontWeight: 300, fontStyle: "italic" }}>
             intentional imprints
           </p>
         </header>
@@ -651,6 +721,7 @@ export default function App() {
           0%, 100% { box-shadow: 0 0 2px 0px rgba(201,169,110,0.0); background: rgba(201,169,110,0.18); }
           50% { box-shadow: 0 0 6px 1px rgba(201,169,110,0.12); background: rgba(201,169,110,0.32); }
         }
+        body { background: #080706; }
       `}</style>
     </div>
   );
