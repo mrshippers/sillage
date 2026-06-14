@@ -25,7 +25,9 @@ Confirmed strength choices: subtle shimmer (premium reads as restraint), Scent S
 
 ## The eight surfaces
 
-1. Home. A momentum start page. Calm centre with the scent of the day and a human one-line reason. Scents drift around the screen. A PlayStation-style horizontal card scroll along the bottom where the centre card grows. Hover or tap any scent for depth and pairings.
+0. App open (splash). The first interaction, and it earns its keep. Smoke curls, the gold serif wordmark draws in under an iridescent sweep, the palette auras bloom, the tagline settles, then the whole thing dissolves and scales into Home. Chic, editorial, unhurried. Plays on cold start, skippable on tap, fast-path on warm start.
+
+1. Home. A momentum start page over a high-fidelity flowing mesh gradient (a water-like field of the palette colours drifting and blending, not a flat ground). Calm centre with the scent of the day and a human one-line reason. Scents drift around the screen. A PlayStation-style horizontal card scroll along the bottom where the centre card grows. Hover or tap any scent for depth and pairings.
 
 2. Scent. The signature surface. Holographic card, dominant accords as luminous bars, the top/heart/base note pyramid, a scent fingerprint visualiser tinted to the scent's aura, a refined 0 to 10 Sillage Score (your nose against the hive), and humanised depth copy.
 
@@ -52,6 +54,21 @@ Settings: theme and shimmer strength, background character (smoke, aurora, metal
 ### Dynamic layouts
 
 The holographic card is a hero treatment, not a default. It does not appear on every page. Each surface gets a layout that fits it: Home is a drifting momentum page, Wheel is radial, Wardrobe is a dense sortable grid, Combo is a blend canvas, Discover is search-first, Profile is data and charts. Shared design language, different shapes.
+
+### Signature transitions and nice-to-haves
+
+These are part of the feel, not extras to drop under pressure:
+
+- Shared-element morph: a shelf card expands into the full scent page and collapses back, no hard cuts.
+- Gyro-reactive holo: tilting the device shifts the foil and the mesh glows, so the optical illusion responds to real motion (graceful fallback to pointer on web).
+- Spritz microinteraction: rating or adding a scent puffs a short mist of its aura colour.
+- Pull-to-refresh on Home re-rolls the daily pick with a smoke swirl.
+- Long-press peek: hold a scent for a quick aura and score without opening it.
+- Skeleton shimmer while the LLM fetches a niche scent on search.
+- Haptics on tilt, tap, and rating (Capacitor).
+- Soft open chime and transition whoosh, off by default.
+- Respect reduced-motion and provide a low-power mode that calms the canvas work.
+- Empty states with personality, not blank screens.
 
 ## Ratings (refined, not five blunt stars)
 
