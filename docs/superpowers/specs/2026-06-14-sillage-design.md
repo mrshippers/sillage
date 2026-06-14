@@ -29,7 +29,7 @@ Confirmed strength choices: subtle shimmer (premium reads as restraint), Scent S
 
 2. Scent. The signature surface. Holographic card, dominant accords as luminous bars, the top/heart/base note pyramid, a scent fingerprint visualiser tinted to the scent's aura, a refined 0 to 10 Sillage Score (your nose against the hive), and humanised depth copy.
 
-3. Scent Wheel. Seven fragrance families orbiting a hub, built with anime.js. Gems skinned in their ingredient, pulsing and tilting. Tap a family and the wheel swings it up, the hub counts your bottles, your wardrobe filters below, and empty families read as gaps to explore.
+3. Notes Explorer (the wheel, reborn). Not a rigid filter. Notes float free in a gentle physics field, drifting and nudging each other, sized by how often they appear in your shelf. Tap a note to actually learn it: what it is, how it smells (humanised), a fact worth knowing, and which of your scents wear it. This is the original "explore notes, fun facts, photoreal ingredient" idea. Cluster by family with a chip ring, or open the classic orbiting family wheel as a second view for filtering. The point is education and play, not just sorting.
 
 4. Wardrobe. Your full collection. Owned, wishlist, finished bottles. Sort and filter by family, season, rating, or note. Add and remove scents.
 
@@ -37,13 +37,17 @@ Confirmed strength choices: subtle shimmer (premium reads as restraint), Scent S
 
 6. Discover. Search the catalogue, add any scent to your wardrobe, hunt niche by note or family. This is where the wardrobe grows.
 
-7. Combo Builder. Restoring the combo page from the original Sillage that got lost. Pick two or three scents from your wardrobe, watch their auras and fingerprints merge into a blended profile, get a harmony read and a short LLM verdict on whether they layer well, then save or export the combo as an image. Sharing your shelf is the first social gesture.
+7. Perfumery Lab (combo builder). Restoring the page from the original Sillage, with its real name and its Chemistry Score. Layer up to four scents, watch their auras and fingerprints merge into one blended profile, get a Chemistry Score and a short LLM verdict on whether they work. The lab also suggests the best combinations from your shelf, ranked, so it proposes pairings you have not tried, not just scores the ones you pick. Save or export a combo as an image.
 
-8. Scent Profile. Your nose, mapped. Dominant families, recurring notes, how your taste moves over time. Your scent DNA.
+8. Scent Profile. Your nose, mapped, with real substance. Dominant families as a chart, your signature notes, taste over time (how your ratings and wears drift across seasons), most-worn and best-rated, your gaps, and a shareable "scent DNA" summary. Not a padded stats page, a portrait of your taste.
 
 ### Navigation and settings
 
-A persistent glass nav bar (bottom tab bar on mobile, side rail on wide screens): Home, Wheel, Wardrobe, Combo, Discover, Profile. Settings lives behind a gear in the nav or the profile: theme and shimmer strength, background character (smoke, aurora, metal), units, notification for the daily pick, manage catalogue and data, LLM key and provider, export or wipe your wardrobe.
+A persistent glass nav bar (bottom tab bar on mobile, side rail on wide screens): Home, Wheel, Shelf, Perfumery, Daily, Profile, Settings. PS3/PS4 in feel: the active icon lifts, a glowing blob springs across with overshoot, tapping fires a ripple. Not a static bar.
+
+Page transitions are a first-class feature, not an afterthought. Moving between surfaces is a real transition (the outgoing page recedes with blur and depth, the incoming rises through the smoke), tuned to feel like console UI, fluid and a little physical. Shared elements where it makes sense (a scent card morphing into the scent page).
+
+Settings: theme and shimmer strength, background character (smoke, aurora, metal), units, daily-pick reminder, manage catalogue and data, LLM provider and key (Claude or Perplexity), export or wipe your wardrobe.
 
 ### Dynamic layouts
 
@@ -71,6 +75,8 @@ All scent depth and pairing copy runs through the humanizer. It should read like
 Own a curated catalogue, but make it feel bottomless. Seed it from a large open fragrance dataset (tens of thousands of perfumes with notes and accords) plus the wardrobe we already have. Store brand, name, year, families, accords with rough strengths, and the top/heart/base notes.
 
 Search hits the local catalogue first and returns instantly. When you search a niche scent that is not in the seed (the whole point, the niche must reign), a live LLM lookup fetches its notes, accords, and a humanised blurb, shows it, and adds it to the catalogue so it is there next time. The catalogue grows with use.
+
+Filter and sort everywhere it helps: by family, by brand, by season, by note, by owned or wishlist. Sort by score, recency, or name. Brand filtering matters for a niche collector, so it is a first-class filter, not buried.
 
 Why not Fragrantica: it has no public API and actively blocks scraping. Owning the seed plus filling gaps with an LLM is legal, robust, and ours to shape (we control the humanised copy and the accord strengths the visualiser needs).
 
