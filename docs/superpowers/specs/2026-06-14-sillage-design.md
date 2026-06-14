@@ -37,9 +37,17 @@ Confirmed strength choices: subtle shimmer (premium reads as restraint), Scent S
 
 6. Discover. Search the catalogue, add any scent to your wardrobe, hunt niche by note or family. This is where the wardrobe grows.
 
-7. Combos and Share. Build layering combos. Export a scent or a combo as an image. Share your shelf. The first social gesture.
+7. Combo Builder. Restoring the combo page from the original Sillage that got lost. Pick two or three scents from your wardrobe, watch their auras and fingerprints merge into a blended profile, get a harmony read and a short LLM verdict on whether they layer well, then save or export the combo as an image. Sharing your shelf is the first social gesture.
 
 8. Scent Profile. Your nose, mapped. Dominant families, recurring notes, how your taste moves over time. Your scent DNA.
+
+### Navigation and settings
+
+A persistent glass nav bar (bottom tab bar on mobile, side rail on wide screens): Home, Wheel, Wardrobe, Combo, Discover, Profile. Settings lives behind a gear in the nav or the profile: theme and shimmer strength, background character (smoke, aurora, metal), units, notification for the daily pick, manage catalogue and data, LLM key and provider, export or wipe your wardrobe.
+
+### Dynamic layouts
+
+The holographic card is a hero treatment, not a default. It does not appear on every page. Each surface gets a layout that fits it: Home is a drifting momentum page, Wheel is radial, Wardrobe is a dense sortable grid, Combo is a blend canvas, Discover is search-first, Profile is data and charts. Shared design language, different shapes.
 
 ## Ratings (refined, not five blunt stars)
 
@@ -59,10 +67,15 @@ All scent depth and pairing copy runs through the humanizer. It should read like
 
 ## The system underneath (my calls, overrule any)
 
-### Fragrance data
-Own a curated catalogue. Seed it from an open fragrance dataset plus the wardrobe we already have, store brand, name, year, families, accords with rough strengths, and the top/heart/base notes. Generate humanised descriptions and review them. Grow the catalogue as scents get added through Discover.
+### Fragrance data and search
+Own a curated catalogue, but make it feel bottomless. Seed it from a large open fragrance dataset (tens of thousands of perfumes with notes and accords) plus the wardrobe we already have. Store brand, name, year, families, accords with rough strengths, and the top/heart/base notes.
 
-Why not Fragrantica: it has no public API and actively blocks scraping, so building on it is fragile and against their terms. Owning the data is legal, fast, and ours to shape (we control the humanised copy and the accord strengths the visualiser needs).
+Search hits the local catalogue first and returns instantly. When you search a niche scent that is not in the seed (the whole point, the niche must reign), a live LLM lookup fetches its notes, accords, and a humanised blurb, shows it, and adds it to the catalogue so it is there next time. The catalogue grows with use.
+
+Why not Fragrantica: it has no public API and actively blocks scraping. Owning the seed plus filling gaps with an LLM is legal, robust, and ours to shape (we control the humanised copy and the accord strengths the visualiser needs).
+
+### Question answering (Claude / Perplexity)
+The depth copy and the "ask anything about a scent" feature are LLM-backed, not just static. Claude is the default for conversational depth, pairing reasoning, and the combo verdict (humanizer baked into the prompt so it never reads like AI). Perplexity is the option for fresh factual lookups on obscure releases where web recency matters. The provider and key are set in Settings. Calls are cached per scent so we are not paying for the same answer twice.
 
 ### App Store path
 Keep the React/Vite codebase and wrap it with Capacitor to produce a real iOS binary. No rebuild, everything we designed ships as-is. TestFlight first, then App Store. (Expo/React Native would mean a full rewrite for little gain here.)
