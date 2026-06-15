@@ -34,7 +34,7 @@ describe('ScentPage', () => {
   })
   it('renders accords', () => {
     renderAt('tomford-noir')
-    expect(screen.getByText(/leather/i)).toBeInTheDocument()
+    expect(screen.getByText('leather')).toBeInTheDocument()
   })
   it('suggests a pairing from the wardrobe', () => {
     renderAt('tomford-noir')

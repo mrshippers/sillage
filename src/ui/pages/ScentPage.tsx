@@ -39,6 +39,21 @@ export function ScentPage({ catalogue, wardrobe }: { catalogue: Catalogue; wardr
         ))}
       </div>
 
+      <div>
+        <div style={{ fontSize: 8, letterSpacing: '.22em', textTransform: 'uppercase', color: 'var(--ink-dim)', marginBottom: 8 }}>Notes</div>
+        {(['top','heart','base'] as const).map(layer => {
+          const notes = scent.notes.filter(n => n.layer === layer)
+          if (notes.length === 0) return null
+          const label = layer === 'top' ? 'Top' : layer === 'heart' ? 'Heart' : 'Base'
+          return (
+            <div key={layer} style={{ marginBottom: 6 }}>
+              <div data-testid="layer-label" style={{ fontSize: 7.5, letterSpacing: '.22em', textTransform: 'uppercase', color: 'var(--ink-dim)' }}>{label}</div>
+              <div style={{ fontSize: 12 }}>{notes.map(n => n.name).join(' · ')}</div>
+            </div>
+          )
+        })}
+      </div>
+
       {pairings.length > 0 && (
         <div>
           <div style={{ fontSize: 8, letterSpacing: '.22em', textTransform: 'uppercase', color: 'var(--ink-dim)', marginBottom: 8 }}>Pairs with your shelf</div>
