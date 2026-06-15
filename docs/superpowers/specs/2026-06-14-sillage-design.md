@@ -109,6 +109,10 @@ Local-first. The wardrobe lives on device and works offline. Add cloud sync (Sup
 ### Design system
 One reusable kit: the smoke field, holographic glass card, iridescent sheen, ivory type, and the family palette. anime.js for component motion, a WebGL shader for the field in production. Built once, used across every surface.
 
+## Brand mark
+
+No wordmark. The icon is a ghosted, translucent outline of the Byredo-style flacon (wide domed cap, thin collar, squat soft-cornered body) sitting upright in the top-right corner, Portal-pictogram quiet. A fine fragrance is spritzed from it, particles drifting down and across to the bottom-left, gold with a few iridescent flecks, finer and more diffuse as they fall, the scent you catch in passing and remember without knowing whose it was. Two crafted details hide in it: a small intricate molecule curled into an S inside the glass, and a monogram S in a hairline ring resting in the trail. One particle settles as a glass bead at the bottom-left. Ground is Deep (near-black plum). Built as scalable SVG so it works at every size and as the app icon. Preview kept at docs/logo-preview.html.
+
 ## Architecture
 
 - Shell: React + Vite, TypeScript, file-based feature modules (home, scent, wheel, wardrobe, daily, discover, combos, profile). Each module owns its components and talks to shared data through typed interfaces.
