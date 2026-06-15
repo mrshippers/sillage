@@ -17,12 +17,13 @@ export function createWardrobe(
   storage: Storage = localStorage,
   now: () => string = () => new Date().toISOString(),
 ): Wardrobe {
-  let entries: WardrobeEntry[] = load()
-  const listeners = new Set<Listener>()
-
   function load(): WardrobeEntry[] {
     try { return JSON.parse(storage.getItem(KEY) ?? '[]') } catch { return [] }
   }
+
+  let entries: WardrobeEntry[] = load()
+  const listeners = new Set<Listener>()
+
   function persist() {
     storage.setItem(KEY, JSON.stringify(entries))
     listeners.forEach(fn => fn())
@@ -36,10 +37,13 @@ export function createWardrobe(
 
   return {
     list: () => [...entries],
-    get: (id) => entries.find(e => e.scentId === id),
+    get: (id) => { const e = entries.find(e => e.scentId === id); return e ? { ...e } : undefined },
     add: (id, ownership) => upsert(id, { ownership }),
     remove: (id) => { entries = entries.filter(e => e.scentId !== id); persist() },
-    rate: (id, score) => upsert(id, { score: clamp(score, 0, 10) }),
+    rate: (id, score) => {
+      if (!entries.some(e => e.scentId === id)) return
+      upsert(id, { score: clamp(score, 0, 10) })
+    },
     subscribe(fn) { listeners.add(fn); return () => listeners.delete(fn) },
   }
 }

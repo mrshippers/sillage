@@ -6,7 +6,7 @@ const cat = createCatalogue(SEED_SCENTS)
 
 describe('catalogue', () => {
   it('gets all and by id', () => {
-    expect(cat.getAll()).toHaveLength(15)
+    expect(cat.getAll()).toHaveLength(SEED_SCENTS.length)
     expect(cat.getById('tomford-noir')?.name).toBe('Noir')
     expect(cat.getById('missing')).toBeUndefined()
   })

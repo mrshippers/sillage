@@ -44,6 +44,23 @@ describe('wardrobe', () => {
     store.add('tomford-noir', 'owned')
     expect(calls).toBe(1)
   })
+  it('rate on a scent not in the wardrobe is a no-op', () => {
+    store.rate('not-added', 5)
+    expect(store.get('not-added')).toBeUndefined()
+  })
+  it('get returns a copy that cannot mutate the store', () => {
+    store.add('tomford-noir', 'owned')
+    const e = store.get('tomford-noir')!
+    e.score = 99
+    expect(store.get('tomford-noir')?.score).toBeUndefined()
+  })
+  it('unsubscribe stops notifications', () => {
+    let calls = 0
+    const unsub = store.subscribe(() => { calls++ })
+    unsub()
+    store.add('tomford-noir', 'owned')
+    expect(calls).toBe(0)
+  })
   it('persists across instances using the same storage', () => {
     const storage = memoryStorage()
     const a = createWardrobe(storage)
