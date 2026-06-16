@@ -11,7 +11,7 @@ describe('catalogue', () => {
     expect(cat.getById('missing')).toBeUndefined()
   })
   it('searches by name and brand, case-insensitive', () => {
-    expect(cat.search('noir').map(s => s.id)).toEqual(['tomford-noir'])
+    expect(cat.search('noir').map(s => s.id)).toEqual(['tomford-noir', 'tomford-noirextreme'])
     expect(cat.search('aesop').length).toBe(2)
   })
   it('filters by family and brand', () => {
