@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sillage mark</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;1,9..144,400;1,9..144,500&family=Archivo:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  body{margin:0;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px;
+    background:radial-gradient(120% 80% at 50% 0%,#241228 0%,#140b14 45%,#0a070c 100%);font-family:'Archivo',system-ui;color:#fbf8f3;padding:40px 16px;}
+  h1{font-weight:500;font-size:14px;letter-spacing:.18em;text-transform:uppercase;opacity:.6;margin:0;}
+  .hero{width:300px;height:300px;border-radius:64px;overflow:hidden;position:relative;box-shadow:0 30px 70px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.12);}
+  .hero svg{position:absolute;inset:0;width:100%;height:100%;}
+  .row{display:flex;gap:18px;}
+  .ti{width:112px;height:112px;border-radius:26px;overflow:hidden;position:relative;cursor:pointer;border:1px solid rgba(255,255,255,.12);transition:.2s;}
+  .ti:hover{border-color:#caa25f;transform:translateY(-3px);}
+  .tl{font-size:9px;letter-spacing:.16em;text-transform:uppercase;opacity:.6;margin-top:8px;text-align:center;}
+  .ti svg{position:absolute;inset:0;width:100%;height:100%;}
+</style></head>
+<body>
+  <h1>Sillage &middot; the mark</h1>
+  <div class="hero" id="hero"></div>
+  <div class="row" id="row"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.2/anime.min.js"></script>
+<script>
+  var A=window.anime;
+  function rnd(s){return function(){s=(s*9301+49297)%233280;return s/233280;};}
+  var IRID=['#ff9bc4','#8fd0c4','#b89bff'];
+  function mark(id,ground){
+    var r=rnd(11);
+    var groundFill=ground==='plum'?'#36203a':ground==='deep'?'#140d18':'#211624';
+    var defs='<defs>'+
+      '<radialGradient id="bg'+id+'" cx="32%" cy="100%" r="125%"><stop offset="0%" stop-color="'+groundFill+'"/><stop offset="46%" stop-color="#1c1320"/><stop offset="100%" stop-color="#100b14"/></radialGradient>'+
+      '<radialGradient id="g'+id+'" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#fff3da"/><stop offset="55%" stop-color="#e6cf9b"/><stop offset="100%" stop-color="#b78a47"/></radialGradient>'+
+      '<radialGradient id="bead'+id+'" cx="38%" cy="32%" r="70%"><stop offset="0%" stop-color="#ffffff"/><stop offset="28%" stop-color="#fff0d2"/><stop offset="70%" stop-color="#d9b27c"/><stop offset="100%" stop-color="#a87f44"/></radialGradient>'+
+      '<filter id="b'+id+'" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="1.3"/></filter>'+
+      '<filter id="cg'+id+'" x="-150%" y="-150%" width="400%" height="400%"><feGaussianBlur stdDeviation="4.4"/></filter></defs>';
+    var bg='<rect width="200" height="200" fill="url(#bg'+id+')"/>';
+    var glows='<circle cx="40" cy="180" r="76" fill="#caa25f" opacity="0.11"/><circle cx="172" cy="42" r="56" fill="#8b5c8f" opacity="0.10"/>';
+
+    // GHOST BYREDO FLACON: wide domed cap, thin collar, squat soft-cornered body. Faint, translucent.
+    var bottle='<g fill="#ffffff" fill-opacity="0.09" stroke="#ffffff" stroke-opacity="0.40" stroke-width="1.8" stroke-linejoin="round">'
+      // wide rounded dome cap
+      +'<path d="M137 56 L137 46 Q137 31 154 31 Q171 31 171 46 L171 56 Z"/>'
+      // faint cap ridges
+      +'<path d="M146 34 L146 55 M154 32 L154 55 M162 34 L162 55" stroke-opacity="0.18" stroke-width="1"/>'
+      // thin collar
+      +'<rect x="135" y="56" width="38" height="5" rx="1.4"/>'
+      // squat body, soft rounded corners (not rectangular)
+      +'<path d="M137 61 Q134 61 133 70 L133 98 Q133 108 143 108 L165 108 Q175 108 175 98 L175 70 Q174 61 171 61 Z"/>'
+      +'</g>';
+
+    // S-MOLECULE inside bottle, light so it reads on the ghost glass
+    var nodes=[[166,69],[156,67],[149,74],[155,82],[163,90],[156,97],[146,99]];
+    var branch=[[161,75],[151,91]];var lt='#ecdcb4';
+    var mol='<g stroke="'+lt+'" stroke-width="1.05" stroke-opacity="0.62">';
+    for(var i=0;i<nodes.length-1;i++){mol+='<line x1="'+nodes[i][0]+'" y1="'+nodes[i][1]+'" x2="'+nodes[i+1][0]+'" y2="'+nodes[i+1][1]+'"/>';}
+    mol+='<line x1="150.5" y1="73" x2="156.5" y2="81" stroke-width="0.6"/><line x1="161" y1="75" x2="156" y2="67"/><line x1="151" y1="91" x2="155" y2="82"/></g><g>';
+    nodes.forEach(function(n,i){var rad=i===3?2.5:2.0;var f=i===3?'url(#g'+id+')':'#f0e6c8';mol+='<circle cx="'+n[0]+'" cy="'+n[1]+'" r="'+rad+'" fill="'+f+'" opacity="0.8"/>';});
+    branch.forEach(function(n){mol+='<circle cx="'+n[0]+'" cy="'+n[1]+'" r="1.5" fill="#f0e6c8" opacity="0.7"/>';});
+    mol+='</g>';
+
+    // SPRITZ down-left, fine + diffuse
+    function bez(t){var p0=[152,33],p1=[120,74],p2=[80,110],p3=[40,166];var u=1-t;
+      return [u*u*u*p0[0]+3*u*u*t*p1[0]+3*u*t*t*p2[0]+t*t*t*p3[0], u*u*u*p0[1]+3*u*u*t*p1[1]+3*u*t*t*p2[1]+t*t*t*p3[1]];}
+    var dots='';
+    for(var i=0;i<78;i++){var tt=i/78;var pt=bez(tt);var spread=(6+tt*44);var ox=(r()-0.5)*spread,oy=(r()-0.5)*spread*0.9;
+      var x=pt[0]+ox,y=pt[1]+oy;var sz=Math.max(0.4,1.9*(1-tt*0.5)+(r()-0.5)*0.5);var op=Math.max(0.07,0.88-tt*0.82);
+      var col=(r()<0.15)?IRID[(r()*3)|0]:'url(#g'+id+')';
+      dots+='<circle cx="'+x.toFixed(1)+'" cy="'+y.toFixed(1)+'" r="'+sz.toFixed(1)+'" fill="'+col+'" opacity="'+op.toFixed(2)+'"/>';}
+    var core='<circle cx="152" cy="33" r="6" fill="url(#g'+id+')" filter="url(#cg'+id+')" opacity="0.95"/><circle cx="152" cy="33" r="3" fill="#fff7e6"/>';
+
+    // MONOGRAM S in the trail (replaces the random circle)
+    var mono='<g transform="translate(99,117)"><circle r="13" fill="none" stroke="url(#g'+id+')" stroke-width="0.9" opacity="0.55"/>'
+      +'<text x="0" y="0.5" text-anchor="middle" dominant-baseline="central" font-family="Fraunces, Georgia, serif" font-style="italic" font-size="20" fill="url(#g'+id+')">S</text></g>';
+
+    // glass bead bottom-left
+    var bead='<g><circle cx="44" cy="164" r="10" fill="url(#bead'+id+')"/><ellipse cx="40.5" cy="160" rx="3.2" ry="2.1" fill="#ffffff" opacity="0.85"/><circle cx="44" cy="164" r="10" fill="none" stroke="#ffffff" stroke-opacity="0.45" stroke-width="0.8"/><circle cx="47" cy="168.5" r="1.2" fill="#fff7e6" opacity="0.7"/></g>';
+
+    return '<svg viewBox="0 0 200 200">'+defs+bg+glows+bottle+mol+'<g filter="url(#b'+id+')">'+dots+'</g>'+mono+core+bead+'</svg>';
+  }
+  document.getElementById('hero').innerHTML=mark('H','plum');
+  var row=document.getElementById('row');
+  [['Plum','plum','v1'],['Deep','deep','v2'],['Mid','mid','v3']].forEach(function(v){var t=document.createElement('div');var wrap=document.createElement('div');
+    wrap.innerHTML='<div class="ti">'+mark(v[2],v[1])+'</div><div class="tl">'+v[0]+'</div>';
+    wrap.querySelector('.ti').onclick=function(){document.getElementById('hero').innerHTML=mark('H'+v[2],v[1]);};row.appendChild(wrap);});
+  function drift(){if(!A)return;document.querySelectorAll('#hero g[filter] circle').forEach(function(ci,i){if(i%3)return;A({targets:ci,translateX:[0,-(Math.random()*3)],translateY:[0,(Math.random()*3)],opacity:[ci.getAttribute('opacity'),Math.min(1,parseFloat(ci.getAttribute('opacity'))+.15)],direction:'alternate',loop:true,duration:1900+Math.random()*1500,easing:'easeInOutSine',delay:Math.random()*1100});});}
+  drift();
+</script>
+</body></html>
