@@ -1,10 +1,10 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import './ui/tokens.css'
-import { App } from './ui/App'
+import SillageApp from './sillage/SillageApp'
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <App />
+    <SillageApp />
   </React.StrictMode>,
 )
