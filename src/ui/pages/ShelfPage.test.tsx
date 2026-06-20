@@ -14,12 +14,12 @@ function renderShelf() {
 describe('ShelfPage', () => {
   it('lists all scents', () => {
     renderShelf()
-    expect(screen.getAllByTestId('scent-row').length).toBe(15)
+    expect(screen.getAllByTestId('scent-row').length).toBe(18)
   })
   it('filters by search query', async () => {
     renderShelf()
     await userEvent.type(screen.getByPlaceholderText(/search/i), 'noir')
-    expect(screen.getAllByTestId('scent-row').length).toBe(1)
+    expect(screen.getAllByTestId('scent-row').length).toBe(2)
     expect(screen.getByText('Noir')).toBeInTheDocument()
   })
   it('filters by family when a chip is clicked', async () => {

@@ -1,4 +1,5 @@
 import type { Scent } from './types'
+import { calcChemistry } from './chemistry'
 
 export interface Pairing { scent: Scent; score: number }
 
@@ -16,5 +17,16 @@ export function suggestPairings(target: Scent, owned: Scent[]): Pairing[] {
     .filter(s => s.id !== target.id)
     .map(s => ({ scent: s, score: sharedBaseNotes(target, s) * 2 + sharedFamilies(target, s) }))
     .filter(p => p.score > 0)
+    .sort((a, b) => b.score - a.score)
+}
+
+export function chemistryPairings(target: Scent, owned: Scent[]): Pairing[] {
+  if (!target.profile) return []
+  return owned
+    .filter(s => s.id !== target.id && s.profile)
+    .map(s => {
+      const chem = calcChemistry([target, s])
+      return { scent: s, score: chem ? chem.total : 0 }
+    })
     .sort((a, b) => b.score - a.score)
 }
