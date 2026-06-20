@@ -1,0 +1,25 @@
+:root {
+  --bg-deep: #140d18;
+  --bg-plum: #211624;
+  --navy: #0b2545;
+  --gold: #caa25f;
+  --gold-light: #e6cf9b;
+  --plum: #8b5c8f;
+  --teal: #3f7f76;
+  --ink: #fbf8f3;
+  --ink-dim: rgba(251, 248, 243, 0.6);
+  --glass-border: rgba(255, 255, 255, 0.16);
+  --radius: 18px;
+  --serif: 'Fraunces', Georgia, serif;
+  --sans: 'Archivo', system-ui, sans-serif;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: var(--sans);
+  color: var(--ink);
+  background: radial-gradient(120% 80% at 50% 0%, var(--bg-plum), var(--bg-deep) 60%, #0a070c 100%);
+  min-height: 100vh;
+}
+.serif { font-family: var(--serif); }
+.italic { font-style: italic; }
