@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import Smoke from './Smoke'
+import { Mark } from './Mark'
 
 // The open. Smoke, three palette auras blooming, the SILLAGE wordmark drawing
 // in under a sheen sweep, a gold rule, then the whole thing dissolves into Home.
@@ -25,7 +26,11 @@ export default function Splash({ onDone }: { onDone: () => void }) {
       <Smoke opacity={0.85} count={26} centered style={{ filter: 'blur(20px) contrast(115%)' }} />
       <div className="aura a1" /><div className="aura a2" /><div className="aura a3" />
       <div style={{ position: 'relative', zIndex: 3, textAlign: 'center' }}>
-        <span style={{ position: 'relative', display: 'inline-block' }}>
+        <div className="wmmark"><Mark size={118} ground={false} glyphs={false} atomiser={0.72} /></div>
+        {/* overflow:hidden clips the sheen to the wordmark. Without it the
+            sweep carries on past the last letter and, over a near-black ground,
+            the overlay-blended bar shows as a grey rectangle beside the word. */}
+        <span style={{ position: 'relative', display: 'inline-block', overflow: 'hidden' }}>
           <span className="wmword">SILLAGE</span>
           <span className="wmsheen" />
         </span>
@@ -38,6 +43,9 @@ export default function Splash({ onDone }: { onDone: () => void }) {
         .a2{width:240px;height:240px;background:radial-gradient(circle,#8b5c8f,transparent 70%);animation:bloom 1.3s ease .36s forwards;}
         .a3{width:220px;height:220px;background:radial-gradient(circle,#3f7f76,transparent 70%);animation:bloom 1.3s ease .52s forwards;}
         @keyframes bloom{to{opacity:.55;transform:translate(-50%,-50%) scale(1.1);}}
+        .wmmark{opacity:0;transform:translateY(10px) scale(.94);animation:markin 1.2s cubic-bezier(.16,1,.3,1) .15s forwards;
+          filter:drop-shadow(0 8px 30px rgba(202,162,95,.35));margin-bottom:6px;}
+        @keyframes markin{to{opacity:1;transform:none;}}
         .wmword{font-family:'Fraunces',serif;font-weight:300;font-size:46px;letter-spacing:.30em;padding-left:.30em;
           background:linear-gradient(180deg,#fff5e0,#d8b780 55%,#9a7a45);-webkit-background-clip:text;background-clip:text;
           -webkit-text-fill-color:transparent;opacity:0;transform:translateY(18px);animation:wmin 1.1s cubic-bezier(.2,.7,.3,1) .6s forwards;}

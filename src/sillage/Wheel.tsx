@@ -1,12 +1,36 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { FAMILIES, DEFAULT_FAMILY, familyMembers } from './families'
+import type { Family } from './families'
+import { useReducedMotion } from './useReducedMotion'
+import { color, font, gold, ink, radius as R, shadow, tint, type, veil, white } from './tokens'
 
-// The Scent Wheel — families orbit a glowing hub, bobbing on a gentle wobble.
-// Tap a family: it swings to the crown, the hub counts your real bottles, and
-// the wardrobe below filters. Empty families invite you to explore (the gap in
-// your nose). Membership + counts are derived from the real profile axes.
-const SERIF = "'Fraunces', 'Georgia', serif"
-const GOLD = '#caa25f'
+// The Scent Wheel - families orbit a glowing hub. Tap a family: it swings to
+// the crown, the hub counts your real bottles, and the wardrobe below filters.
+// Membership + counts are derived from the real profile axes.
+//
+// The gems used to be typographic dingbats on a flat radial gradient. They are
+// now drawn marks on the same material stack as the rest of the app, and the
+// orbit stills completely under prefers-reduced-motion.
+
+export function FamilyIcon({ family, size = 22, stroke }: { family: Family; size?: number; stroke?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width={size}
+      height={size}
+      fill="none"
+      stroke={stroke || family.color}
+      strokeWidth={1.4}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      {family.icon.map((d, i) => (
+        <path key={i} d={d} />
+      ))}
+    </svg>
+  )
+}
 
 export default function Wheel() {
   const [sel, setSel] = useState(DEFAULT_FAMILY)
@@ -14,13 +38,20 @@ export default function Wheel() {
   const nodeRefs = useRef<(HTMLDivElement | null)[]>([])
   const offRef = useRef(0)
   const targetRef = useRef(0)
+  const reduced = useReducedMotion()
   const N = FAMILIES.length
-  const R = 108, cx = 150, cy = 150
+  const R_ORBIT = 108
+  const cx = 150
+  const cy = 150
 
-  const positions = useMemo(() => FAMILIES.map((_, i) => {
-    const ang = (i / N) * 2 * Math.PI - Math.PI / 2
-    return { x: cx + R * Math.cos(ang), y: cy + R * Math.sin(ang), deg: (ang * 180) / Math.PI }
-  }), [N])
+  const positions = useMemo(
+    () =>
+      FAMILIES.map((_, i) => {
+        const ang = (i / N) * 2 * Math.PI - Math.PI / 2
+        return { x: cx + R_ORBIT * Math.cos(ang), y: cy + R_ORBIT * Math.sin(ang), deg: (ang * 180) / Math.PI }
+      }),
+    [N],
+  )
 
   useEffect(() => {
     let target = -90 - positions[sel].deg
@@ -30,76 +61,133 @@ export default function Wheel() {
   }, [sel, positions])
 
   useEffect(() => {
-    let raf = 0, t = 0
+    // Reduced motion: snap to the selected family, paint once, run no loop.
+    if (reduced) {
+      offRef.current = targetRef.current
+      if (ringRef.current) ringRef.current.style.transform = `rotate(${offRef.current}deg)`
+      nodeRefs.current.forEach(el => {
+        if (el) el.style.transform = `rotate(${-offRef.current}deg)`
+      })
+      return
+    }
+    let raf = 0
+    let t = 0
     const loop = () => {
       t += 0.012
       offRef.current += (targetRef.current - offRef.current) * 0.08
       const rot = offRef.current + Math.sin(t) * 3
       if (ringRef.current) ringRef.current.style.transform = `rotate(${rot}deg)`
-      nodeRefs.current.forEach(el => { if (el) el.style.transform = `rotate(${-rot}deg)` })
+      nodeRefs.current.forEach(el => {
+        if (el) el.style.transform = `rotate(${-rot}deg)`
+      })
       raf = requestAnimationFrame(loop)
     }
     loop()
     return () => cancelAnimationFrame(raf)
-  }, [])
+  }, [reduced, sel])
 
   const fam = FAMILIES[sel]
   const members = familyMembers(fam.key)
 
   return (
     <div>
-      <div className="H t30">Scent <span className="hi">Wheel</span></div>
-      <div className="sub2">Tap a family to filter your shelf</div>
+      <h1 className="H t-title">
+        Scent <span className="hi">Wheel</span>
+      </h1>
+      <p className="sub">Tap a family to filter your shelf</p>
 
-      <div style={{ position: 'relative', width: 300, height: 300, margin: '10px auto 0' }}>
+      <div style={{ position: 'relative', width: 300, height: 300, margin: '14px auto 0' }}>
         <div ref={ringRef} style={{ position: 'absolute', inset: 0 }}>
           {FAMILIES.map((f, i) => {
             const selected = i === sel
             const count = familyMembers(f.key).length
             return (
-              <div key={f.key} ref={el => { nodeRefs.current[i] = el }} onClick={() => setSel(i)}
-                style={{ position: 'absolute', left: positions[i].x, top: positions[i].y, width: 60, margin: '-30px 0 0 -30px', display: 'flex', flexDirection: 'column', alignItems: 'center', cursor: 'pointer' }}>
-                <div style={{
-                  width: 54, height: 54, borderRadius: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, color: f.color,
-                  background: `radial-gradient(circle at 50% 38%, ${f.color}55, rgba(8,6,9,0.75))`,
-                  border: `1px solid ${selected ? 'rgba(255,236,200,0.8)' : 'rgba(255,255,255,0.18)'}`,
-                  boxShadow: selected ? `0 0 22px ${f.color}` : '0 8px 22px rgba(0,0,0,0.5)',
-                  filter: `drop-shadow(0 0 6px ${f.color}66)`, transition: 'box-shadow 0.3s, border-color 0.3s',
-                }}>{f.glyph}</div>
-                <div style={{ fontSize: 7, letterSpacing: '0.14em', textTransform: 'uppercase', marginTop: 5, opacity: 0.85, textShadow: '0 1px 3px #000' }}>{f.name}{count ? '' : ' ·'}</div>
+              <div
+                key={f.key}
+                ref={el => {
+                  nodeRefs.current[i] = el
+                }}
+                onClick={() => setSel(i)}
+                style={{
+                  position: 'absolute',
+                  left: positions[i].x,
+                  top: positions[i].y,
+                  width: 60,
+                  margin: '-30px 0 0 -30px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  cursor: 'pointer',
+                }}
+              >
+                <div
+                  className="gem"
+                  style={{
+                    background: `radial-gradient(115% 95% at 32% 22%, ${tint(f.color, 0.5)} 0%, ${veil(0.82)} 62%, ${veil(0.96)} 100%)`,
+                    borderColor: selected ? gold(0.65) : white(0.14),
+                    boxShadow: selected ? `0 0 20px ${tint(f.color, 0.45)}, ${shadow.lift}` : shadow.lift,
+                    opacity: count ? 1 : 0.45,
+                  }}
+                >
+                  <FamilyIcon family={f} size={22} stroke={selected ? color.goldLight : f.color} />
+                  <span className="grain" />
+                </div>
+                <span
+                  className="gem-label"
+                  style={{ color: selected ? color.goldLight : ink(0.72) }}
+                >
+                  {f.name}
+                </span>
               </div>
             )
           })}
         </div>
-        <div style={{
-          position: 'absolute', top: '50%', left: '50%', width: 118, height: 118, margin: '-59px 0 0 -59px', borderRadius: '50%',
-          display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center',
-          border: '1px solid rgba(255,255,255,0.16)', background: `radial-gradient(circle at 50% 36%, ${fam.color}33, #0c0a10 78%)`,
-          boxShadow: `inset 0 1px 0 rgba(255,255,255,0.2), 0 20px 50px rgba(0,0,0,0.6)`,
-        }}>
-          <div style={{ fontSize: 24, color: fam.color, filter: `drop-shadow(0 0 12px ${fam.color})` }}>{fam.glyph}</div>
-          <div style={{ fontFamily: SERIF, fontStyle: 'italic', fontSize: 18, marginTop: 2 }}>{fam.name}</div>
-          <div style={{ fontSize: 7.5, letterSpacing: '0.18em', textTransform: 'uppercase', opacity: 0.65, marginTop: 3 }}>
+
+        <div className="hub">
+          <FamilyIcon family={fam} size={26} stroke={color.goldLight} />
+          <div style={{ fontFamily: font.display, fontStyle: 'italic', fontSize: type.lead, marginTop: 4 }}>{fam.name}</div>
+          <div className="hub-count">
             {members.length ? `${members.length} ${members.length === 1 ? 'bottle' : 'bottles'}` : 'a gap to explore'}
           </div>
+          <span className="grain" />
         </div>
       </div>
 
-      <div style={{ marginTop: 16 }} key={fam.key}>
+      <div style={{ marginTop: 20 }} key={fam.key}>
         {members.length === 0 && (
-          <div style={{ fontFamily: SERIF, fontStyle: 'italic', opacity: 0.6, textAlign: 'center', padding: 16, fontSize: 14 }}>
-            No {fam.name.toLowerCase()} yet — a gap in your nose. Explore the niche →
-          </div>
+          <p
+            style={{
+              fontFamily: font.display,
+              fontStyle: 'italic',
+              color: ink(0.55),
+              textAlign: 'center',
+              padding: 20,
+              fontSize: type.body,
+              margin: 0,
+            }}
+          >
+            No {fam.name.toLowerCase()} yet - a gap in your nose.
+          </p>
         )}
-        {members.map((m, i) => (
-          <div key={m.id} className="srow2" style={{ animation: `rise .45s ease ${i * 0.06}s both` }}>
-            <div className="sth" style={{ background: `linear-gradient(160deg, ${m.color}, rgba(8,6,9,0.8))` }} />
+        {members.map(m => (
+          <div key={m.id} className="srow">
+            <div
+              className="sth"
+              style={{
+                background: `radial-gradient(120% 100% at 28% 18%, ${tint(m.color, 0.85)} 0%, ${veil(0.72)} 58%, ${veil(0.95)} 100%)`,
+              }}
+            >
+              <span className="grain" />
+              <span className="rim" style={{ borderRadius: R.sm }} />
+            </div>
             <div className="si">
               <div className="sbn">{m.house}</div>
               <div className="snn">{m.short}</div>
               <div className="sfm">{m.notes.slice(0, 3).join(' · ')}</div>
             </div>
-            <div className="scc" style={{ color: GOLD }}>{m.longevity}.{m.projection}</div>
+            <div className="scc">
+              {m.longevity}.{m.projection}
+            </div>
           </div>
         ))}
       </div>
