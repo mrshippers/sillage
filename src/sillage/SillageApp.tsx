@@ -1,7 +1,10 @@
 import { useState, useMemo, useEffect, useRef } from 'react'
 import { WEATHER_MAP, OCCASION_MAP, ENERGY_MAP, TIME_MAP } from '../domain/selector'
 import { FRAGRANCES, scoreOne, chemistryOf, getLayerPartner } from './data'
-import { deriveNose, scentOfDay, greeting, reasonFor, currentSeason } from './families'
+import { deriveNose, scentOfDay, greeting, currentSeason } from './families'
+import type { Ownership } from '../domain/types'
+import Home from './Home'
+import { STATUS_LABEL, useBottleStatus, usePersisted } from './wardrobeState'
 import Smoke from './Smoke'
 import Splash from './Splash'
 import Wheel from './Wheel'
@@ -52,10 +55,14 @@ export default function SillageApp() {
   const [page, setPage] = useState<PageId>('home')
   const reduced = useReducedMotion()
 
-  // settings (functional)
-  const [shimmer, setShimmer] = useState<'subtle' | 'pronounced'>('subtle')
-  const [bg, setBg] = useState<'smoke' | 'mesh'>('smoke')
-  const [reminder, setReminder] = useState(true)
+  // settings (functional, and they survive a reload)
+  const [shimmer, setShimmer] = usePersisted<'subtle' | 'pronounced'>('sillage.settings.shimmer', 'subtle', ['subtle', 'pronounced'])
+  const [bg, setBg] = usePersisted<'smoke' | 'mesh'>('sillage.settings.bg', 'smoke', ['smoke', 'mesh'])
+  const [reminder, setReminder] = usePersisted('sillage.settings.reminder', true, [true, false])
+
+  // the bottles: on the shelf unless marked finished or wishlist
+  const { statusOf, setStatus } = useBottleStatus()
+  const [statusFilter, setStatusFilter] = useState<Ownership | null>(null)
 
   // shelf
   const [query, setQuery] = useState('')
@@ -88,10 +95,17 @@ export default function SillageApp() {
 
   const season0 = currentSeason()
   const greet = useMemo(() => greeting(), [])
-  const sotd = useMemo(() => scentOfDay(), [])
+  const onShelf = useMemo(() => FRAGRANCES.filter(f => statusOf(f.id) === 'owned'), [statusOf])
+  const tally = useMemo(() => {
+    const t: Record<Ownership, number> = { owned: 0, finished: 0, wishlist: 0 }
+    FRAGRANCES.forEach(f => t[statusOf(f.id)]++)
+    return t
+  }, [statusOf])
+  const sotd = useMemo(() => (onShelf.length ? scentOfDay(new Date(), onShelf) : null), [onShelf])
 
   const shelf = useMemo(() => {
     let list = [...FRAGRANCES]
+    if (statusFilter) list = list.filter(f => statusOf(f.id) === statusFilter)
     if (season) list = list.filter(f => f.season.includes(season))
     if (query.trim()) {
       const q = query.toLowerCase()
@@ -109,18 +123,18 @@ export default function SillageApp() {
         : (a, b) => b.projection + b.longevity - (a.projection + a.longevity),
     )
     return list
-  }, [query, season, sortKey])
+  }, [query, season, sortKey, statusFilter, statusOf])
 
   const results = useMemo(() => {
     if (!showResults) return []
     const conditions = { weather: selWeather, occasion: selOccasion, energy: selEnergy, time: selTime }
-    return FRAGRANCES.map(f => ({ ...f, score: scoreOne(f, conditions) }))
+    return onShelf.map(f => ({ ...f, score: scoreOne(f, conditions) }))
       .sort((a, b) => b.score - a.score)
       .slice(0, 3)
-  }, [showResults, selWeather, selOccasion, selEnergy, selTime])
+  }, [showResults, selWeather, selOccasion, selEnergy, selTime, onShelf])
   const layer = useMemo(() => (results.length ? getLayerPartner(results[0], results.map(r => r.id)) : null), [results])
   const chem = useMemo(() => (showChem ? chemistryOf(lab) : null), [showChem, lab])
-  const nose = useMemo(() => deriveNose(), [])
+  const nose = useMemo(() => deriveNose(onShelf), [onShelf])
 
   const canGenerate = selWeather.length > 0 || !!selOccasion || !!selEnergy || !!selTime
   const resetDaily = () => {
@@ -143,7 +157,6 @@ export default function SillageApp() {
     setPage('shelf')
     setOpenId(id)
   }
-  const helloParts = greet.hello.split(' ')
 
   return (
     <div className="stage">
@@ -166,55 +179,7 @@ export default function SillageApp() {
 
           {/* HOME */}
           {page === 'home' && (
-            <div className="pg" key="home">
-              <h1 className="H t-title">
-                {helloParts[0]} <span className="hi">{helloParts.slice(1).join(' ')}</span>
-              </h1>
-              <p className="sub">{greet.meta}</p>
-
-              <div className="eyebrow">Scent of the day</div>
-              <Surface scent={sotd} height={268} radius={R.lg} hero shade={0.86} onClick={() => goShelf(sotd.id)}>
-                <div className="hero-body">
-                  <div className="hero-kicker">Tonight, reach for</div>
-                  <div className="hero-name">{sotd.short}</div>
-                  <p className="hero-reason">{reasonFor(sotd, season0)}</p>
-                </div>
-              </Surface>
-
-              <div className="eyebrow">From your shelf</div>
-              <div className="rail">
-                {FRAGRANCES.slice(0, 8).map(f => (
-                  <Surface key={f.id} scent={f} radius={R.md} className="railcard" onClick={() => goShelf(f.id)}>
-                    <div className="railcard-body">
-                      <div className="railcard-house">{f.house}</div>
-                      <div className="railcard-name">{f.short}</div>
-                    </div>
-                  </Surface>
-                ))}
-              </div>
-
-              {/* The shelf at a glance - the old Home ended here with ~700px of
-                  dead black below the rail. */}
-              <div className="eyebrow">The wardrobe</div>
-              <div className="ledger">
-                <div className="ledger-row">
-                  <span>Bottles</span>
-                  <span className="ledger-v">{nose.bottles}</span>
-                </div>
-                <div className="ledger-row">
-                  <span>Dominant</span>
-                  <span className="ledger-v">{nose.families[0]?.name ?? '-'}</span>
-                </div>
-                <div className="ledger-row">
-                  <span>Anchor</span>
-                  <span className="ledger-v">{nose.anchor}</span>
-                </div>
-                <div className="ledger-row">
-                  <span>Season</span>
-                  <span className="ledger-v">{season0}</span>
-                </div>
-              </div>
-            </div>
+            <Home greet={greet} season={season0} sotd={sotd} onShelf={onShelf} nose={nose} onOpen={goShelf} />
           )}
 
           {/* WHEEL */}
@@ -230,7 +195,11 @@ export default function SillageApp() {
               <h1 className="H t-title">
                 My <span className="hi">Shelf</span>
               </h1>
-              <p className="sub">{FRAGRANCES.length} bottles · hand-profiled</p>
+              <p className="sub">
+                {tally.owned} on the shelf
+                {tally.finished > 0 && ` · ${tally.finished} finished`}
+                {tally.wishlist > 0 && ` · ${tally.wishlist} on the wishlist`}
+              </p>
 
               <div className="search">
                 <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke={ink(0.55)} strokeWidth="1.6">
@@ -253,6 +222,16 @@ export default function SillageApp() {
                 </button>
               </div>
 
+              <div className="filterbar">
+                <div className="tagset">
+                  {([null, 'owned', 'finished', 'wishlist'] as const).map(st => (
+                    <button key={st || 'every'} className={`tag${statusFilter === st ? ' on' : ''}`} onClick={() => setStatusFilter(st)}>
+                      {st ? STATUS_LABEL[st] : 'Every bottle'}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               {shelf.length === 0 && <div className="empty">Nothing matches</div>}
 
               {shelf.map(f => {
@@ -271,7 +250,10 @@ export default function SillageApp() {
                     <div className="si">
                       <div className="sbn">{f.house}</div>
                       <div className="snn">{f.short}</div>
-                      <div className="sfm">{f.family}</div>
+                      <div className="sfm">
+                        {f.family}
+                        {statusOf(f.id) !== 'owned' && <span> · {STATUS_LABEL[statusOf(f.id)]}</span>}
+                      </div>
                     </div>
                     <div className="scc">
                       {f.longevity}.{f.projection}
@@ -279,6 +261,21 @@ export default function SillageApp() {
                     {open && (
                       <div className="sopen">
                         <p className="sdesc">{f.description}</p>
+                        <div className="set" onClick={e => e.stopPropagation()}>
+                          <span className="lab">This bottle</span>
+                          <div className="seg" role="group" aria-label={`${f.short}: where it lives`}>
+                            {(['owned', 'finished', 'wishlist'] as const).map(st => (
+                              <button
+                                key={st}
+                                className={statusOf(f.id) === st ? 'on' : ''}
+                                aria-pressed={statusOf(f.id) === st}
+                                onClick={() => setStatus(f.id, st)}
+                              >
+                                {st === 'owned' ? 'Shelf' : STATUS_LABEL[st]}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
                         <div className="meterpair">
                           <div>
                             <div className="lab">Projection</div>
@@ -641,7 +638,7 @@ export default function SillageApp() {
                   role="switch"
                   aria-checked={reminder}
                   aria-label="Daily reminder"
-                  onClick={() => setReminder(r => !r)}
+                  onClick={() => setReminder(!reminder)}
                 >
                   <span className="switch-knob" />
                 </button>

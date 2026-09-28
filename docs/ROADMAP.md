@@ -20,21 +20,27 @@ These are confirmed unresolved corners from the commit message and source inspec
 |---|-----|--------|--------|
 | 1 | Logo mark not built | Brand spec (ghost flacon + spritz + S-molecule + monogram) exists in `docs/superpowers/specs/`. Only the plain gold SILLAGE wordmark appears in Splash. | Spec `2026-06-14-sillage-design.md` line 112 |
 | 2 | Aura cards are CSS gradients, not photography | Cards use `radial-gradient` from each scent's `color` hex. Spec calls for cards "skinned in the key ingredient" (Santal 33 wears sandalwood, Noir wears smoke). Accurate and honest for now; photography is a future bar. | Commit 67915bf message |
-| 3 | No wardrobe persistence across sessions | `src/domain/wardrobe.ts` has a full `localStorage` repo. The `src/sillage/SillageApp.tsx` layer uses `useState` arrays and does not call `wardrobe.ts`. Rating a scent or adding it to the shelf is lost on refresh. | Code inspection |
-| 4 | Ownership model absent | Spec defines owned / wishlist / finished bottles. Currently every scent is just "on the shelf" with no ownership status. | Spec surface 4 |
+| 3 | ~~No wardrobe persistence across sessions~~ DONE 28 Sep 2026: bottle status and settings persist via `wardrobe.ts` / `wardrobeState.ts`. There is still no rating UI to persist (see P1). | `src/domain/wardrobe.ts` has a full `localStorage` repo. The `src/sillage/SillageApp.tsx` layer uses `useState` arrays and does not call `wardrobe.ts`. Rating a scent or adding it to the shelf is lost on refresh. | Code inspection |
+| 4 | ~~Ownership model absent~~ DONE 28 Sep 2026: every bottle is On the shelf, Finished or Wishlist. | Spec defines owned / wishlist / finished bottles. Currently every scent is just "on the shelf" with no ownership status. | Spec surface 4 |
 | 5 | Wheel is family-orbit, not the full physics notes explorer | The spec describes notes floating in a physics field, sized by frequency, with educational tap-to-learn content. The live Wheel shows 9 family rings orbiting a hub. The family-orbit view is the spec's "second view" fallback; the primary notes-field is not built. | Spec surface 3 |
 
 ---
 
 ## Next priorities (in order)
 
-### P1 - Wire wardrobe persistence
+### P1 - Wire wardrobe persistence - DONE 28 Sep 2026
+
+Correction on the gap as first written: the live app never had a rating UI, so nothing was being lost on refresh except the Settings choices. Shipped: bottle status persists through `src/domain/wardrobe.ts` (wrapped by `src/sillage/wardrobeState.ts`), and Shimmer / Background / Daily reminder persist too. A personal 0-10 rating on the open bottle is the remaining piece; `wardrobe.rate()` is ready for it.
+
 
 Connect `SillageApp.tsx` shelf state to `src/domain/wardrobe.ts` so ratings and owned scents survive a refresh. This is infrastructure, not a visible feature; it unblocks everything that depends on "your shelf" being real (Daily quality, Nose accuracy, Perfumery suggestions).
 
 Estimated scope: replace the 3 `useState` arrays in `SillageApp.tsx` with `wardrobe.ts` subscribers + mutations. No new files needed.
 
-### P2 - Ownership statuses
+### P2 - Ownership statuses - DONE 28 Sep 2026
+
+Shipped as a Shelf / Finished / Wishlist control on each open bottle, a status filter row, and the state named in words on the row. Home, Daily and Nose now read only the bottles on the shelf, so a finished bottle is never suggested. Home was split out of `SillageApp.tsx` into `Home.tsx` first, per the constraint below.
+
 
 Add `own | wish | finished` to `WardrobeEntry` (already has `owned?: boolean`). Surface as a 3-state chip on each shelf card and in the wardrobe filter. The Nose tab gains a Finished section.
 

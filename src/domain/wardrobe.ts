@@ -25,7 +25,9 @@ export function createWardrobe(
   const listeners = new Set<Listener>()
 
   function persist() {
-    storage.setItem(KEY, JSON.stringify(entries))
+    // A refused write (private mode, full quota) must not also freeze the UI:
+    // the change still holds for this visit and listeners still hear it.
+    try { storage.setItem(KEY, JSON.stringify(entries)) } catch { /* not persisted */ }
     listeners.forEach(fn => fn())
   }
   function upsert(scentId: string, patch: Partial<WardrobeEntry>) {

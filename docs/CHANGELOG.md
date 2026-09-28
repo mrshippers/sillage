@@ -4,6 +4,19 @@ Newest first. All dates from git commit metadata.
 
 ---
 
+## 2026-09-28
+
+### Your shelf is yours (roadmap P1 + P2)
+
+- Each open bottle on the Shelf gets **This bottle: Shelf / Finished / Wishlist**. The state is written through the typed domain wardrobe (`localStorage`, key `sillage.wardrobe.v1`) and survives a reload; a bottle with no entry is on the shelf.
+- The Shelf header counts what is where ("14 on the shelf · 1 finished"), a status filter row sits under the season row, and a finished or wishlist bottle says so in words on its row.
+- Home (Scent of the Day, From your shelf, the wardrobe ledger), Daily and Nose read only the bottles on the shelf; an empty shelf says so instead of crashing or inventing a number.
+- Settings (Shimmer, Background, Daily reminder) persist, and a stored value the app does not recognise is ignored.
+- A refused storage write (private mode, full quota) no longer freezes the UI.
+- Home moved out of `SillageApp.tsx` into `Home.tsx`. 57 tests green (7 new).
+
+---
+
 ## 2026-06-25
 
 ### Full brainstormed app (commit 67915bf)

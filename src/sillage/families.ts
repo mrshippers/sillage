@@ -112,21 +112,23 @@ export interface NoseProfile {
 }
 
 // "Your Nose" — dominant families, signature notes and stats from the shelf.
-export function deriveNose(): NoseProfile {
+// Takes the bottles actually on it; an empty shelf reads as empty.
+export function deriveNose(list: Fragrance[] = FRAGRANCES): NoseProfile {
+  if (list.length === 0) return { families: [], notes: [], bottles: 0, avgLongevity: '-', anchor: '-' }
   const counts = FAMILIES
-    .map(fam => ({ name: fam.name, color: fam.color, n: FRAGRANCES.filter(fam.test).length }))
+    .map(fam => ({ name: fam.name, color: fam.color, n: list.filter(fam.test).length }))
     .filter(x => x.n > 0)
     .sort((a, b) => b.n - a.n)
   const total = counts.reduce((s, x) => s + x.n, 0) || 1
   const families = counts.map(x => ({ name: x.name, color: x.color, pct: Math.round((x.n / total) * 100) }))
 
   const noteCount = new Map<string, number>()
-  FRAGRANCES.forEach(f => f.notes.forEach(n => noteCount.set(n, (noteCount.get(n) || 0) + 1)))
+  list.forEach(f => f.notes.forEach(n => noteCount.set(n, (noteCount.get(n) || 0) + 1)))
   const notes = [...noteCount.entries()].sort((a, b) => b[1] - a[1]).slice(0, 6).map(e => e[0])
 
-  const bottles = FRAGRANCES.length
-  const avgLongevity = (FRAGRANCES.reduce((s, f) => s + f.longevity, 0) / bottles).toFixed(1)
-  const anchor = [...FRAGRANCES].sort((a, b) => (b.projection + b.longevity) - (a.projection + a.longevity))[0].short
+  const bottles = list.length
+  const avgLongevity = (list.reduce((s, f) => s + f.longevity, 0) / bottles).toFixed(1)
+  const anchor = [...list].sort((a, b) => (b.projection + b.longevity) - (a.projection + a.longevity))[0].short
   return { families, notes, bottles, avgLongevity, anchor }
 }
 
@@ -140,10 +142,10 @@ export function currentSeason(d = new Date()): 'Winter' | 'Spring' | 'Summer' | 
 
 // Deterministic scent of the day: season-weighted, indexed by day-of-year so it
 // is stable for the whole day and rotates honestly through the real shelf.
-export function scentOfDay(d = new Date()): Fragrance {
+export function scentOfDay(d = new Date(), shelf: Fragrance[] = FRAGRANCES): Fragrance {
   const season = currentSeason(d)
-  const pool = FRAGRANCES.filter(f => f.season.includes(season))
-  const list = pool.length ? pool : FRAGRANCES
+  const pool = shelf.filter(f => f.season.includes(season))
+  const list = pool.length ? pool : shelf
   const start = new Date(d.getFullYear(), 0, 0)
   const doy = Math.floor((d.getTime() - start.getTime()) / 86400000)
   return list[doy % list.length]
