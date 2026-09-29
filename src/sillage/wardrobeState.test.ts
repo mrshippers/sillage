@@ -59,3 +59,57 @@ describe('persisted setting', () => {
     expect(result.current[0]).toBe('a')
   })
 })
+
+import { mostWorn, parseOwnBottle, useWears, todayLocal } from './wardrobeState'
+
+describe('ratings', () => {
+  beforeEach(() => localStorage.clear())
+  it('a rated bottle keeps its score when it goes back on the shelf', () => {
+    const id = FRAGRANCES[2].id
+    const { result } = renderHook(() => useBottleStatus())
+    act(() => result.current.rate(id, 8))
+    act(() => result.current.setStatus(id, 'finished'))
+    act(() => result.current.setStatus(id, 'owned'))
+    expect(result.current.scoreOf(id)).toBe(8)
+    expect(result.current.statusOf(id)).toBe('owned')
+  })
+  it('clears a score back to unrated', () => {
+    const id = FRAGRANCES[3].id
+    const { result } = renderHook(() => useBottleStatus())
+    act(() => result.current.rate(id, 6))
+    act(() => result.current.rate(id, null))
+    expect(result.current.scoreOf(id)).toBeNull()
+  })
+})
+
+describe('wear diary', () => {
+  beforeEach(() => localStorage.clear())
+  it('wearing it twice today is one wear, and a second tap takes it back', () => {
+    const { result } = renderHook(() => useWears())
+    act(() => result.current.toggleToday(1))
+    expect(result.current.count(1)).toBe(1)
+    expect(result.current.wornToday(1)).toBe(true)
+    act(() => result.current.toggleToday(1))
+    expect(result.current.count(1)).toBe(0)
+  })
+  it('most worn ranks by count, then the more recent', () => {
+    expect(mostWorn({ a: ['2026-09-01'], b: ['2026-09-02', '2026-09-03'], c: ['2026-09-05'], d: [] })).toEqual([
+      { id: 'b', count: 2 }, { id: 'c', count: 1 }, { id: 'a', count: 1 },
+    ])
+  })
+  it('today is the local calendar day', () => {
+    expect(todayLocal(new Date(2026, 8, 30, 23, 30))).toBe('2026-09-30')
+  })
+})
+
+describe('a bottle you add', () => {
+  it('takes your notes and never invents a profile', () => {
+    const b = parseOwnBottle({ name: ' Oud Wood ', house: 'Tom Ford', notes: 'oud, rosewood,\ncardamom' }, '2026-09-30')
+    expect(b).toEqual({ id: 'own-tom-ford-oud-wood', name: 'Oud Wood', house: 'Tom Ford', notes: ['Oud', 'Rosewood', 'Cardamom'], addedOn: '2026-09-30' })
+    expect(Object.keys(b)).not.toContain('warmth')
+  })
+  it('needs a name and a house', () => {
+    expect(parseOwnBottle({ name: '', house: 'Aesop', notes: '' }, '2026-09-30')).toEqual({ error: 'Give it its name.' })
+    expect(parseOwnBottle({ name: 'Hwyl', house: '', notes: '' }, '2026-09-30')).toEqual({ error: 'Which house made it?' })
+  })
+})

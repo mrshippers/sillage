@@ -1,0 +1,165 @@
+/* Sillage, "atelier". Plum night, one paper strip, gold as the liquid.
+   Values come from tokens.ts through custom properties set on .app. */
+
+.app {
+  min-height: 100dvh;
+  background: var(--ground);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 15px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+/* resets carry zero specificity (:where) so every component rule below wins */
+:where(.app) * { box-sizing: border-box; }
+:where(.app) :where(button) { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; padding: 0; }
+:where(.app) :focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
+
+.col {
+  width: 100%;
+  max-width: 460px;
+  margin: 0 auto;
+  padding: 20px 20px calc(96px + env(safe-area-inset-bottom));
+}
+
+/* ── top line ───────────────────────────────────────────────── */
+.top { display: flex; align-items: baseline; justify-content: space-between; padding-top: 6px; }
+.wordmark { font-family: var(--serif); font-size: 13px; letter-spacing: 0.34em; color: var(--gold); }
+.when { font-size: 13px; color: var(--graphite); }
+
+/* ── headings: sentence case, no eyebrow chrome ─────────────── */
+.h1 { font-family: var(--serif); font-weight: 400; font-size: 34px; line-height: 1.08; letter-spacing: -0.01em; margin: 28px 0 6px; font-variation-settings: 'opsz' 96; }
+.lede { color: var(--graphite); margin: 0; font-size: 15px; }
+.h2 { font-family: var(--serif); font-weight: 400; font-size: 21px; margin: 36px 0 12px; }
+.sep { border: 0; border-top: 1px solid var(--rule); margin: 28px 0; }
+.muted { color: var(--graphite); }
+.small { font-size: 13px; }
+
+/* ── the smelling strip ─────────────────────────────────────── */
+/* A paper blotter with a tapered dipped end on the right. The stain is the
+   juice: the scent's authored colour, soaked into the tip and bleeding back. */
+.strip {
+  position: relative;
+  display: block;
+  width: 100%;
+  text-align: left;
+  color: var(--pencil);
+  background:
+    radial-gradient(120% 140% at 100% 50%, color-mix(in oklab, var(--stain) 88%, transparent) 0 12%, color-mix(in oklab, var(--stain) 40%, transparent) 22%, transparent 42%),
+    linear-gradient(180deg, var(--paper), var(--paper-shade));
+  clip-path: polygon(0 0, calc(100% - 26px) 0, 100% 50%, calc(100% - 26px) 100%, 0 100%);
+  transition: transform 160ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.strip--blank { background: linear-gradient(180deg, var(--paper), var(--paper-shade)); }
+.strip:active { transform: translateY(1px); }
+.strip-in { display: block; padding: 18px 56px 18px 18px; }
+.strip-house { display: block; font-size: 13px; color: var(--pencil-soft); }
+.strip-name { display: block; font-family: var(--serif); color: var(--pencil); line-height: 1.02; font-variation-settings: 'opsz' 120; }
+.strip--hero .strip-in { padding: 26px 64px 28px 22px; min-height: 150px; display: flex; flex-direction: column; justify-content: flex-end; }
+.strip--hero .strip-name { font-size: 44px; letter-spacing: -0.015em; }
+.strip--row .strip-name { font-size: 21px; }
+.strip--row .strip-in { padding: 12px 48px 12px 14px; }
+.strip-family { display: block; margin-top: 8px; font-size: 13px; color: var(--pencil-soft); }
+
+/* the trail: how far and how long it carries, drawn off the tip */
+.trail { display: block; width: 100%; height: 46px; margin-top: 10px; }
+.trail-cap { display: flex; justify-content: space-between; font-size: 13px; color: var(--graphite); margin-top: 2px; }
+
+/* ── rows on the rack ───────────────────────────────────────── */
+.rack { list-style: none; margin: 16px 0 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.rack-row { display: grid; grid-template-columns: 1fr 64px; align-items: center; gap: 12px; }
+.rack-side { text-align: right; }
+.score { font-family: var(--serif); font-size: 22px; color: var(--gold); line-height: 1; }
+.status-word { display: block; margin-top: 4px; font-size: 12px; color: var(--graphite); }
+
+/* the profile in one line: 11 axes as gold density, like a developed plate */
+.chroma { display: grid; grid-template-columns: repeat(11, 1fr); gap: 2px; height: 5px; margin-top: 6px; }
+.chroma i { display: block; background: var(--gold); border-radius: 1px; }
+
+/* ── controls: square-cut, hairline, gold when chosen ───────── */
+.chips { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; }
+.chips::-webkit-scrollbar { display: none; }
+.wrap { flex-wrap: wrap; overflow: visible; }
+.chip {
+  flex: 0 0 auto;
+  min-height: 40px;
+  padding: 0 14px;
+  border: 1px solid var(--rule);
+  border-radius: 2px;
+  font-size: 14px;
+  color: var(--graphite);
+  white-space: nowrap;
+}
+.chip[aria-pressed='true'] { color: var(--ground); background: var(--gold); border-color: var(--gold); }
+.btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-height: 46px; padding: 0 20px;
+  border-radius: 2px;
+  background: var(--gold); color: var(--ground) !important;
+  font-weight: 600; font-size: 15px;
+}
+.btn[disabled] { opacity: 0.4; cursor: default; }
+.btn-line { background: none; color: var(--ink) !important; border: 1px solid var(--rule); font-weight: 500; }
+.actions { display: flex; gap: 10px; margin-top: 16px; flex-wrap: wrap; }
+.field { width: 100%; min-height: 46px; padding: 0 14px; border-radius: 2px; border: 1px solid var(--rule); background: var(--ground-raised); color: var(--ink); font: inherit; }
+.field::placeholder { color: var(--graphite); }
+.label { display: block; font-size: 13px; color: var(--graphite); margin: 14px 0 6px; }
+
+/* ── ledgers: label left, value right, hairline between ─────── */
+.ledger { list-style: none; margin: 0; padding: 0; }
+.ledger li { display: flex; justify-content: space-between; gap: 16px; padding: 12px 0; border-bottom: 1px solid var(--rule); }
+.ledger li span:last-child { color: var(--ink); font-family: var(--serif); font-size: 17px; }
+
+/* axis bars on the scent page */
+.bars { list-style: none; margin: 0; padding: 0; }
+.bars li { display: grid; grid-template-columns: 92px 1fr 26px; align-items: center; gap: 10px; padding: 7px 0; font-size: 14px; }
+.bar { height: 4px; background: var(--rule); border-radius: 1px; overflow: hidden; }
+.bar > i { display: block; height: 100%; background: var(--gold); }
+.bars--words li { grid-template-columns: 92px 1fr auto; }
+.bars b { font-weight: 400; color: var(--graphite); text-align: right; font-variant-numeric: tabular-nums; }
+
+.notes { display: flex; flex-wrap: wrap; gap: 6px 14px; }
+.note { font-family: var(--serif); font-size: 17px; color: var(--ink); }
+.note-link { text-decoration: underline; text-decoration-color: var(--rule); text-underline-offset: 5px; }
+
+.prose { color: var(--ink); font-family: var(--serif); font-size: 19px; line-height: 1.45; margin: 18px 0 0; font-style: italic; }
+.para { margin: 14px 0 0; color: var(--graphite); }
+.para b { color: var(--ink); font-weight: 500; }
+
+/* the rating: eleven stops, 0 to 10 */
+.rate { display: grid; grid-template-columns: repeat(11, 1fr); gap: 3px; }
+.rate button { min-height: 40px; border: 1px solid var(--rule); border-radius: 2px; font-size: 14px; color: var(--graphite); font-variant-numeric: tabular-nums; }
+.rate button[aria-pressed='true'] { background: var(--gold); border-color: var(--gold); color: var(--ground); }
+
+.seg { display: grid; grid-template-columns: repeat(3, 1fr); border: 1px solid var(--rule); border-radius: 2px; }
+.seg button { min-height: 44px; font-size: 14px; color: var(--graphite); }
+.seg button + button { border-left: 1px solid var(--rule); }
+.seg button[aria-pressed='true'] { color: var(--ground); background: var(--gold); }
+
+.back { min-height: 44px; color: var(--graphite); font-size: 14px; padding: 0; }
+.empty { color: var(--graphite); margin: 18px 0; }
+.result { font-family: var(--serif); font-size: 64px; line-height: 1; color: var(--gold); margin: 22px 0 4px; }
+.verdict { font-family: var(--serif); font-style: italic; font-size: 20px; margin: 4px 0 0; }
+
+/* ── the tab bar ────────────────────────────────────────────── */
+.tabs {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 20;
+  background: color-mix(in oklab, var(--ground) 94%, transparent);
+  border-top: 1px solid var(--rule);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+.tabs ul { list-style: none; margin: 0 auto; padding: 0; max-width: 460px; display: grid; grid-template-columns: repeat(5, 1fr); }
+.tabs button { position: relative; width: 100%; min-height: 56px; font-size: 13px; color: var(--graphite); }
+.tabs button[aria-current='page'] { color: var(--ink); }
+.tabs button[aria-current='page']::before { content: ''; position: absolute; top: -1px; left: 30%; right: 30%; height: 2px; background: var(--gold); }
+
+@media (min-width: 720px) {
+  .col { padding-top: 40px; }
+  .h1 { font-size: 42px; }
+  .strip--hero .strip-name { font-size: 52px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .strip { transition: none; }
+  .strip:active { transform: none; }
+}

@@ -4,6 +4,20 @@ Newest first. All dates from git commit metadata.
 
 ---
 
+## 2026-09-30
+
+### Atelier: the redesign, and the rest of the app
+
+The "living aura" direction read as a toy: blurred colour blobs standing in for imagery we do not have, smoke, iridescent sheen. Every bottle is now a **smelling strip**: paper, the name pencilled on it, and the juice's stain soaked into the dipped tip (the scent's authored `color`, so the only colour a scent brings is real data). The ground is the brand plum at night; gold is the liquid, for scores and choices only. Fraunces for names, Archivo for the rest; no tracked-caps eyebrows, no phone frame, no splash.
+
+- Five tabs: **Tonight** (the strip for tonight, its trail, and choose-by-the-evening), **Shelf** (the rack, with your score and the profile as a line of gold density), **Lab**, **Notes** (explorer by note, from your bottles), **You** (your nose, most worn, add a bottle, download your data).
+- **The scent page**: full page per bottle, the trail it leaves (length = longevity, spread = projection, from the profile), status, **your 0-10 score**, **a wear diary** ("wore it today"), its profile as bars, how to wear it, and the best layering partner already on your shelf.
+- **Add a bottle** the collection does not have: stored unprofiled, so it sits out of every score, trail and pairing until it has a real profile. Nothing is ever guessed or scraped.
+- Everything stays on the device; "Download my data" exports it as JSON.
+- Retired and deleted: Smoke, Splash, Material, the Wheel's orbit, the fake Daily reminder toggle.
+
+---
+
 ## 2026-09-28
 
 ### Your shelf is yours (roadmap P1 + P2)
