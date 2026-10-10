@@ -4,7 +4,7 @@ Newest first. All dates from git commit metadata.
 
 ---
 
-## 2026-09-30
+## 2026-09-29
 
 ### Atelier: the redesign, and the rest of the app
 
