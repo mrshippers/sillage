@@ -1,6 +1,6 @@
 # Sillage - Roadmap
 
-Current state of `main` as of 2026-09-29, commit 33fef53 (the "atelier" redesign). The 25 Jun rebuild notes below are kept for history; where the atelier redesign changed them, the row says so.
+Current state of `main` as of 2026-09-29, commit 33fef53 (the "atelier" redesign). Checked again 26 Oct 2026: the only changes since are the PWA icon set and manifest fixes (#3, #4, #5), noted under P3. The 25 Jun rebuild notes below are kept for history; where the atelier redesign changed them, the row says so.
 
 ---
 
@@ -54,6 +54,8 @@ Render the brand mark spec from `docs/superpowers/specs/2026-06-14-sillage-desig
 - No fills, stroke only, works on dark and light ground
 
 Use in Splash alongside the wordmark and as the PWA icon. (Splash was deleted 29 Sep 2026; the placement needs re-deciding.)
+
+Status 26 Oct 2026: still not built. A new PWA icon set shipped on 13 Oct (#3), with iOS-versioned icons (#4) and a corrected manifest content type (#5) on 26 Oct, but the icon is an amber trail on a dark ground, not the flacon mark specified above.
 
 ### P4 - Notes explorer (full physics field)
 
