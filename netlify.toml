@@ -30,3 +30,10 @@
   for = "/assets/*"
   [headers.values]
     Cache-Control = "public, max-age=31536000, immutable"
+
+# Netlify serves .webmanifest as application/octet-stream by default, which
+# browsers may ignore, taking the home-screen icons with it.
+[[headers]]
+  for = "/*.webmanifest"
+  [headers.values]
+    Content-Type = "application/manifest+json"
