@@ -142,16 +142,115 @@
 .verdict { font-family: var(--serif); font-style: italic; font-size: 20px; margin: 4px 0 0; }
 
 /* ── the tab bar ────────────────────────────────────────────── */
+/* Glass (see below): the strips pass under it. The hairline keeps its 1px so
+   nothing moves; the glass edge draws the line now. */
 .tabs {
   position: fixed; left: 0; right: 0; bottom: 0; z-index: 20;
-  background: color-mix(in oklab, var(--ground) 94%, transparent);
-  border-top: 1px solid var(--rule);
+  border-top: 1px solid transparent;
   padding-bottom: env(safe-area-inset-bottom);
 }
 .tabs ul { list-style: none; margin: 0 auto; padding: 0; max-width: 460px; display: grid; grid-template-columns: repeat(5, 1fr); }
 .tabs button { position: relative; width: 100%; min-height: 56px; font-size: 13px; color: var(--graphite); }
 .tabs button[aria-current='page'] { color: var(--ink); }
 .tabs button[aria-current='page']::before { content: ''; position: absolute; top: -1px; left: 30%; right: 30%; height: 2px; background: var(--gold); }
+
+/* ── glass ──────────────────────────────────────────────────── */
+/* Clear rather than frosted: the strip's colour and shape come through, a
+   thick slab at the rim. No sheen and no glow; the only thing it adds is what is already
+   passing under it. Dark material only, because Sillage is a night ground.
+   The numbers here are the whole material. Density (0 thin, 1 dense) and
+   saturation kept are written per surface by glass.ts from what is behind
+   it; with no script a surface sits dense, which is the safe end. */
+.app {
+  --glass-ink-a: 0.94;
+  --glass-ink-2-a: 0.64;
+  --glass-a-thin: 0.16;     /* tint over the plum ground */
+  --glass-a-dense: 0.25;    /* tint when paper slides under */
+  --glass-dim-thin: 0.8;    /* brightness() dims like a multiply with black, so it never goes muddy */
+  --glass-dim-dense: 0.28;  /* the dense end is set by the contrast sweep, not by eye */
+  --glass-blur: 6px;        /* a clear pane is 2px, but at 2px the words on the page can be read under the
+                               tab labels; at 6px they are shapes and colour, at 10px they are nothing */
+  --glass-sat: 1.6;
+  --glass-split: 0.15;      /* how far red and blue part at the rim */
+  --glass-rim-hi: rgba(255, 255, 255, 0.32);
+  --glass-rim-lo: rgba(255, 255, 255, 0.18);
+  --glass-rim-line: rgba(255, 255, 255, 0.1);
+  --glass-out: rgba(0, 0, 0, 0.45);
+  --glass-drop: rgba(0, 0, 0, 0.36);
+  /* the edge, for a slab seen whole and for bars that run off the screen */
+  --glass-edge:
+    inset 1.5px 1.5px 1px -1px var(--glass-rim-hi), inset -1.5px -1.5px 1px -1px var(--glass-rim-lo),
+    inset 0 0 0 0.5px var(--glass-rim-line), 0 0 0 0.5px var(--glass-out), 0 6px 24px var(--glass-drop);
+  --glass-edge-t:
+    inset 0 1.5px 1px -1px var(--glass-rim-hi), inset 0 0.5px 0 0 var(--glass-rim-line),
+    0 -0.5px 0 0 var(--glass-out), 0 -6px 24px var(--glass-drop);
+  --glass-edge-b:
+    inset 0 -1.5px 1px -1px var(--glass-rim-lo), inset 0 -0.5px 0 0 var(--glass-rim-line),
+    0 0.5px 0 0 var(--glass-out), 0 6px 24px var(--glass-drop);
+  /* light inside the slab: from the top left, a glow under the top rim, a little shade at the foot */
+  --glass-light:
+    radial-gradient(120% 160% at 0% 0%, rgba(255, 255, 255, 0.1), transparent 55%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.05), transparent 38%),
+    linear-gradient(0deg, rgba(0, 0, 0, 0.12), transparent 34%);
+}
+
+/* registered, so a surface glides between states instead of jumping */
+@property --glass-on { syntax: '<number>'; inherits: false; initial-value: 0; }
+@property --glass-density { syntax: '<number>'; inherits: false; initial-value: 1; }
+@property --glass-keep { syntax: '<number>'; inherits: false; initial-value: 1; }
+@property --glass-scale { syntax: '<number>'; inherits: true; initial-value: 1; }
+@property --glass-a-thin { syntax: '<number>'; inherits: true; initial-value: 0.16; }
+@property --glass-a-dense { syntax: '<number>'; inherits: true; initial-value: 0.25; }
+@property --glass-dim-thin { syntax: '<number>'; inherits: true; initial-value: 0.8; }
+@property --glass-dim-dense { syntax: '<number>'; inherits: true; initial-value: 0.28; }
+@property --glass-sat { syntax: '<number>'; inherits: true; initial-value: 1.6; }
+@property --glass-ink-a { syntax: '<number>'; inherits: true; initial-value: 0.94; }
+@property --glass-ink-2-a { syntax: '<number>'; inherits: true; initial-value: 0.64; }
+@property --glass-tint { syntax: '<color>'; inherits: true; initial-value: #1a121d; }
+@property --glass-ink { syntax: '<color>'; inherits: true; initial-value: #fbf8f3; }
+:root { transition: --glass-scale 320ms cubic-bezier(0.2, 0.8, 0.2, 1); }
+
+/* Four declarations make a surface glass: the tint, the backdrop filter (with
+   the rim lens last, so the colour steps fold into one pass and the bend
+   stays crisp), the edge, and the ink. data-rim names the edges that carry a
+   rim on a bar that runs off the screen. */
+.glass {
+  --glass-on: 1;
+  --_tint: calc((var(--glass-a-thin) + (var(--glass-a-dense) - var(--glass-a-thin)) * var(--glass-density, 1)) * var(--glass-scale));
+  --_dim: calc(1 - (1 - (var(--glass-dim-thin) + (var(--glass-dim-dense) - var(--glass-dim-thin)) * var(--glass-density, 1))) * min(var(--glass-scale), 1));
+  /* everything drawn on the glass takes the glass ink, through the tokens the rules above already read */
+  --ink: color-mix(in srgb, var(--glass-ink) calc(var(--glass-ink-a) * 100%), transparent);
+  --graphite: color-mix(in srgb, var(--glass-ink) calc(var(--glass-ink-2-a) * 100%), transparent);
+
+  background-color: color-mix(in srgb, var(--glass-tint) min(calc(var(--_tint) * 100%), 100%), transparent);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(calc(var(--glass-sat) * var(--glass-keep, 1))) brightness(var(--_dim));
+  backdrop-filter: blur(var(--glass-blur)) saturate(calc(var(--glass-sat) * var(--glass-keep, 1))) brightness(var(--_dim)) var(--glass-lens,);
+  box-shadow: var(--glass-edge);
+  color: var(--ink);
+}
+.glass[data-rim='t'] { box-shadow: var(--glass-edge-t); }
+.glass[data-rim='b'] { box-shadow: var(--glass-edge-b); }
+.glass[data-glass-live] { transition: --glass-density 320ms cubic-bezier(0.2, 0.8, 0.2, 1), --glass-keep 320ms cubic-bezier(0.2, 0.8, 0.2, 1); }
+/* light text adds to what is behind it rather than covering it */
+.glass > * { mix-blend-mode: plus-lighter; }
+.glass::after {
+  content: ''; position: absolute; inset: 0; z-index: -1;
+  border-radius: inherit; background: var(--glass-light); pointer-events: none;
+}
+/* asked for less transparency, or a forced palette: the same tint, solid */
+@media (prefers-reduced-transparency: reduce), (forced-colors: active) {
+  .glass { background-color: var(--glass-tint); -webkit-backdrop-filter: none; backdrop-filter: none; }
+  .glass::after { display: none; }
+  .glass > * { mix-blend-mode: normal; }
+}
+
+/* the one setting: a hairline track, gold where it is filled, a square-cut thumb like every other control */
+.range { display: block; width: 100%; height: 40px; margin: 0; background: none; -webkit-appearance: none; appearance: none; cursor: pointer; }
+.range::-webkit-slider-runnable-track { height: 2px; background: linear-gradient(90deg, var(--gold) var(--fill, 0%), var(--rule) var(--fill, 0%)); }
+.range::-webkit-slider-thumb { -webkit-appearance: none; width: 12px; height: 24px; margin-top: -11px; border-radius: 2px; background: var(--gold); }
+.range::-moz-range-track { height: 2px; background: var(--rule); }
+.range::-moz-range-progress { height: 2px; background: var(--gold); }
+.range::-moz-range-thumb { width: 12px; height: 24px; border: 0; border-radius: 2px; background: var(--gold); }
 
 @media (min-width: 720px) {
   .col { padding-top: 40px; }
@@ -160,6 +259,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .glass[data-glass-live] { transition: none; }
   .strip { transition: none; }
   .strip:active { transform: none; }
 }

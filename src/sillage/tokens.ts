@@ -32,6 +32,12 @@ export const color = {
   goldDeep: '#9a7a45',
   plum: '#8b5c8f',
 
+  // glass: the tab bar, which has the strips passing under it. The tint is the
+  // raised ground, so the glass is a smoked flacon and not a grey pane; the ink
+  // is the one ink, drawn at two fixed strengths (see "glass" in atelier.css).
+  glassTint: '#1a121d',
+  glassInk: '#fbf8f3',
+
   // iridescent flecks: the logo mark's spritz only (logo-v4), never UI
   iris: ['#ff9bc4', '#8fd0c4', '#b89bff'] as const,
 } as const
@@ -54,6 +60,8 @@ export function cssVars(): Record<string, string> {
     '--graphite': color.graphite,
     '--gold': color.gold,
     '--gold-light': color.goldLight,
+    '--glass-tint': color.glassTint,
+    '--glass-ink': color.glassInk,
     '--serif': font.display,
     '--sans': font.body,
   }

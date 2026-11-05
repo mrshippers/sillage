@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState, type CSSProperties } from 'react'
 import './atelier.css'
 import { allBottles } from './bottles'
+import { mountGlass } from './glass'
 import Lab from './Lab'
 import Notes from './Notes'
 import ScentPage from './ScentPage'
@@ -47,6 +48,8 @@ export default function SillageApp() {
   useEffect(() => {
     document.title = opened ? `${opened.short}, Sillage` : 'Sillage'
   }, [opened])
+  // the tab bar is glass: this reads what is passing under it and bends the rim
+  useEffect(() => mountGlass(), [])
 
   return (
     <div className="app" style={cssVars() as CSSProperties}>
@@ -96,7 +99,7 @@ export default function SillageApp() {
         )}
       </main>
 
-      <nav className="tabs" aria-label="Sillage">
+      <nav className="tabs glass" data-rim="t" aria-label="Sillage">
         <ul>
           {TABS.map(t => (
             <li key={t.id}>
