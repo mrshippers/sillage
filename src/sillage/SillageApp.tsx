@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type PointerEvent } from 'react'
 import './atelier.css'
 import { allBottles } from './bottles'
 import { createSpring, type Spring } from './fluid'
@@ -76,7 +76,7 @@ export default function SillageApp() {
   useEffect(() => {
     const el = inkEl.current
     if (!el) return
-    const sp = createSpring(tabIdx, { response: 0.42, damping: 0.9, rest: 0.002 }, v => {
+    const sp = createSpring(tabIdx, { response: 0.42, damping: 0.68, rest: 0.002 }, v => {
       el.style.transform = `translateX(${v * 100}%)`
     })
     sp.set(tabIdx)
@@ -182,7 +182,7 @@ export default function SillageApp() {
           <li className="tab-ink" ref={inkEl} aria-hidden />
           {TABS.map(t => (
             <li key={t.id}>
-              <button type="button" aria-current={!opened && tab === t.id ? 'page' : undefined} onClick={() => go(t.id)}>
+              <button type="button" aria-current={!opened && tab === t.id ? 'page' : undefined} onPointerDown={ripple} onClick={() => go(t.id)}>
                 {t.label}
               </button>
             </li>
@@ -201,4 +201,17 @@ function shouldSplash() {
   } catch {
     return false
   }
+}
+
+/* A tap leaves a ripple under the finger, from the touch point, once. */
+function ripple(e: PointerEvent<HTMLButtonElement>) {
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return
+  const b = e.currentTarget
+  const r = b.getBoundingClientRect()
+  const i = document.createElement('i')
+  i.className = 'ripple'
+  i.style.left = `${e.clientX - r.left}px`
+  i.style.top = `${e.clientY - r.top}px`
+  i.addEventListener('animationend', () => i.remove())
+  b.appendChild(i)
 }

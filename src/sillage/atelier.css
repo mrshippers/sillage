@@ -153,7 +153,10 @@
 .tabs ul { list-style: none; margin: 0 auto; padding: 0; max-width: 460px; display: grid; grid-template-columns: repeat(5, 1fr); }
 .tabs button { position: relative; width: 100%; min-height: 56px; font-size: 13px; color: var(--graphite); }
 .tabs button[aria-current='page'] { color: var(--ink); }
-.tabs button { transition: color 300ms var(--ease-out); }
+.tabs button { transition: color 300ms var(--ease-out); overflow: hidden; }
+.ripple { position: absolute; width: 90px; height: 90px; margin: -45px 0 0 -45px; border-radius: 50%; pointer-events: none;
+  background: radial-gradient(closest-side, color-mix(in oklab, var(--gold) 50%, transparent), transparent); animation: ripple 520ms var(--ease-out) both; }
+@keyframes ripple { from { opacity: 0.9; scale: 0.2; } to { opacity: 0; scale: 1.6; } }
 /* one gold mark that travels between tabs; it parts when a bottle is open */
 .tabs ul { position: relative; }
 .tab-ink { position: absolute; top: -1px; left: 0; width: 20%; height: 2px; pointer-events: none; list-style: none;

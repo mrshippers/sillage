@@ -37,6 +37,7 @@ export function useSwipePages(root: RefObject<HTMLElement | null>, page: RefObje
       if (p) {
         p.style.translate = v ? `${v}px 0` : ''
         p.style.opacity = v ? String(1 - Math.min(Math.abs(v) / (width() * 0.8), 1) * 0.85) : ''
+        p.style.scale = v ? String(1 - Math.min(Math.abs(v) / width(), 1) * 0.05) : '' // it recedes as it goes
       }
       if (progress) L.current.onProgress?.(-v / width())
     }
