@@ -2,6 +2,7 @@
    Values come from tokens.ts through custom properties set on .app. */
 
 .app {
+  touch-action: pan-y pinch-zoom;
   min-height: 100dvh;
   background: var(--ground);
   color: var(--ink);
@@ -156,7 +157,7 @@
 /* one gold mark that travels between tabs; it parts when a bottle is open */
 .tabs ul { position: relative; }
 .tab-ink { position: absolute; top: -1px; left: 0; width: 20%; height: 2px; pointer-events: none; list-style: none;
-  transform: translateX(calc(var(--i, 0) * 100%)); transition: transform 560ms var(--spring), opacity 240ms; }
+  transform: translateX(calc(var(--i, 0) * 100%)); transition: opacity 240ms; will-change: transform; }
 .tab-ink::before { content: ''; position: absolute; inset: 0 30%; background: var(--gold); border-radius: 2px; }
 .tabs ul[data-away] .tab-ink { opacity: 0; }
 
@@ -278,7 +279,9 @@
 @property --haze { syntax: '<color>'; inherits: true; initial-value: #8b5c8f; }
 .app { transition: --haze 1.4s var(--ease-out); }
 
-@keyframes rise { from { opacity: 0; translate: 0 16px; filter: blur(3px); } to { opacity: 1; translate: 0 0; filter: blur(0); } }
+@keyframes rise { from { opacity: 0; translate: 0 14px; } to { opacity: 1; translate: 0 0; } }
+@keyframes rise-r { from { opacity: 0; translate: 26px 0; } to { opacity: 1; translate: 0 0; } }
+@keyframes rise-l { from { opacity: 0; translate: -26px 0; } to { opacity: 1; translate: 0 0; } }
 @keyframes dip { from { opacity: 0; translate: 40px 0; } to { opacity: 1; translate: 0 0; } }
 @keyframes soak { from { --soak: 0; } to { --soak: 1; } }
 @keyframes drift { from { --drift: 0%; } to { --drift: 6%; } }
@@ -301,7 +304,13 @@
 .tabs { view-transition-name: tabs; }
 
 /* each page arrives top to bottom, one thing after another */
-.page > * { animation: rise 700ms var(--ease-out) both; animation-delay: calc(var(--n, 0) * 55ms); }
+.page > * { animation: rise 520ms var(--ease-out) both; animation-delay: calc(var(--n, 0) * 40ms); }
+.page[data-dir='r'] > * { animation-name: rise-r; }
+.page[data-dir='l'] > * { animation-name: rise-l; }
+/* swiped in: the page itself is moving under the finger's spring, so nothing inside fades up from nothing */
+.page[data-dir='s'] > * { animation: none; }
+.page[data-dir='s'] .strip--hero { animation: soak 1500ms var(--ease-out) both, drift 9s 1.8s ease-in-out infinite alternate; }
+.page { will-change: translate, opacity; }
 .page > :nth-child(1) { --n: 0; } .page > :nth-child(2) { --n: 1; } .page > :nth-child(3) { --n: 2; }
 .page > :nth-child(4) { --n: 3; } .page > :nth-child(5) { --n: 4; } .page > :nth-child(6) { --n: 5; }
 .page > :nth-child(7) { --n: 6; } .page > :nth-child(8) { --n: 7; } .page > :nth-child(n + 9) { --n: 8; }
@@ -310,8 +319,7 @@
 /* the strip is dipped as you arrive: it slides in, the stain soaks to the tip,
    then the juice keeps moving, slowly. The hero leans toward a finger. */
 .strip--hero { animation: dip 900ms var(--ease-out) both, soak 1700ms 200ms var(--ease-out) both, drift 9s 1.8s ease-in-out infinite alternate;
-  transform: perspective(760px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)); transition: transform 420ms var(--ease-out); will-change: transform; }
-.strip--hero:active { transform: perspective(760px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) scale(0.992); }
+  will-change: transform; }
 .strip--hero::after { content: ''; position: absolute; inset: 0; pointer-events: none; opacity: 0; transition: opacity 400ms;
   background: radial-gradient(55% 110% at var(--mx, 70%) var(--my, 30%), rgba(255, 255, 255, 0.55), transparent 62%); mix-blend-mode: soft-light; }
 .strip--hero:is(:hover, :active)::after { opacity: 1; }
@@ -344,5 +352,33 @@
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
   ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; }
-  .strip--hero { transform: none; }
+  .splash { display: none; }
 }
+
+/* ── grain: a flat dark ground reads as a screen, grain reads as a surface ── */
+.grain { position: fixed; inset: 0; z-index: 0; pointer-events: none; opacity: 0.1; mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.9 0'/></filter><rect width='220' height='220' filter='url(%23n)'/></svg>"); }
+
+/* ── the open ───────────────────────────────────────────────── */
+/* The page beneath holds its first frame until the dissolve begins, so it
+   arrives out of the smoke rather than after it. */
+.app[data-splash='on'] .page > *, .app[data-splash='on'] .strip--hero, .app[data-splash='on'] .trail-wake,
+.app[data-splash='on'] .trail-cap, .app[data-splash='on'] .bar > i, .app[data-splash='on'] .chroma i { animation-play-state: paused; }
+.splash { position: fixed; inset: 0; z-index: 60; display: grid; place-items: center; background: var(--ground);
+  animation: splash-out 800ms 2400ms var(--ease-out) both; touch-action: manipulation; }
+.splash[data-out] { animation: splash-out 520ms 0s var(--ease-out) both; }
+@keyframes splash-out { from { opacity: 1; scale: 1; } to { opacity: 0; scale: 1.05; } }
+.splash-aura { position: absolute; width: 120vmin; height: 120vmin; border-radius: 50%; filter: blur(60px); opacity: 0; animation: bloom 2600ms var(--ease-out) both; will-change: scale, opacity; }
+.splash-aura.a1 { background: radial-gradient(closest-side, color-mix(in oklab, var(--gold) 55%, transparent), transparent); left: -30vmin; top: 5vmin; animation-delay: 150ms; }
+.splash-aura.a2 { background: radial-gradient(closest-side, color-mix(in oklab, var(--plum, #8b5c8f) 60%, transparent), transparent); right: -40vmin; bottom: 0; animation-delay: 450ms; }
+.splash-aura.a3 { background: radial-gradient(closest-side, color-mix(in oklab, var(--gold-light) 28%, transparent), transparent); left: 10vmin; bottom: -50vmin; animation-delay: 800ms; }
+@keyframes bloom { from { opacity: 0; scale: 0.55; } 40% { opacity: 0.8; } to { opacity: 0.55; scale: 1.18; } }
+.splash-mark { position: relative; display: grid; justify-items: center; gap: 14px; }
+.splash-word { font-family: var(--serif); font-size: 40px; letter-spacing: 0.42em; padding-left: 0.42em; line-height: 1;
+  background: linear-gradient(100deg, var(--gold-deep, #9a7a45) 0%, var(--gold) 30%, #fff5e0 50%, var(--gold) 70%, var(--gold-deep, #9a7a45) 100%);
+  background-size: 260% 100%; -webkit-background-clip: text; background-clip: text; color: transparent;
+  animation: word-in 1300ms 350ms var(--ease-out) both, sheen 1900ms 900ms ease-in-out both; }
+@keyframes word-in { from { clip-path: inset(0 100% 0 0); opacity: 0; } 25% { opacity: 1; } to { clip-path: inset(0 0 0 0); opacity: 1; } }
+@keyframes sheen { from { background-position: 130% 0; } to { background-position: -30% 0; } }
+.splash-rule { width: 168px; height: 1px; background: linear-gradient(90deg, transparent, var(--gold), transparent); transform-origin: 50% 50%; animation: grow 1100ms 1100ms var(--ease-out) both; }
+.splash-tag { font-size: 12px; letter-spacing: 0.34em; padding-left: 0.34em; text-transform: uppercase; color: var(--graphite); animation: rise 800ms 1500ms var(--ease-out) both; }

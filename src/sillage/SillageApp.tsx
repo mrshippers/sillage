@@ -1,14 +1,17 @@
-import { useCallback, useEffect, useMemo, useState, type CSSProperties } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import './atelier.css'
 import { allBottles } from './bottles'
+import { createSpring, type Spring } from './fluid'
 import { mountGlass } from './glass'
 import Lab from './Lab'
 import { morph } from './motion'
 import Notes from './Notes'
 import ScentPage from './ScentPage'
 import Shelf from './Shelf'
+import Splash from './Splash'
 import Tonight from './Tonight'
 import { cssVars } from './tokens'
+import { useSwipePages } from './useSwipePages'
 import { useBottleStatus, useOwnBottles, usePersisted, useWears } from './wardrobeState'
 import You from './You'
 
@@ -40,24 +43,78 @@ export default function SillageApp() {
   const [pickStain, setPickStain] = useState<string | null>(null)
   const haze = opened?.stain ?? (tab === 'tonight' ? pickStain : null)
 
+  const tabIdx = TABS.findIndex(t => t.id === tab)
+  // which side the page arrives from, so it leaves the way it came (+1 right, -1 left)
+  const [dir, setDir] = useState<'' | 'r' | 'l' | 's'>('') // r, l: tapped in from that side; s: swiped, the gesture moves the page itself
+
   const open = useCallback((id: string) => {
     morph(() => {
+      setDir('r')
       setOpenId(id)
       window.scrollTo({ top: 0 })
     }, id)
   }, [])
   const back = () => {
     const id = openId ?? undefined
-    morph(() => setOpenId(null), id)
-  }
-  const go = (t: Tab) => {
     morph(() => {
-      setTab(t)
+      setDir('l')
       setOpenId(null)
-      setNote(null)
-      window.scrollTo({ top: 0 })
-    })
+    }, id)
   }
+  const goNow = (t: Tab, swiped = false) => {
+    setDir(swiped ? 's' : TABS.findIndex(x => x.id === t) > tabIdx ? 'r' : 'l')
+    setTab(t)
+    setOpenId(null)
+    setNote(null)
+    window.scrollTo({ top: 0 })
+  }
+  const go = (t: Tab) => morph(() => goNow(t))
+
+  // the gold mark under the tabs is a spring: it follows a swipe 1:1 and settles on a tap
+  const ink = useRef<Spring | null>(null)
+  const inkEl = useRef<HTMLLIElement>(null)
+  useEffect(() => {
+    const el = inkEl.current
+    if (!el) return
+    const sp = createSpring(tabIdx, { response: 0.42, damping: 0.9, rest: 0.002 }, v => {
+      el.style.transform = `translateX(${v * 100}%)`
+    })
+    sp.set(tabIdx)
+    ink.current = sp
+    return () => sp.stop()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+  useEffect(() => ink.current?.to(tabIdx), [tabIdx])
+
+  const appEl = useRef<HTMLDivElement>(null)
+  const pageEl = useRef<HTMLDivElement>(null)
+  useSwipePages(appEl, pageEl, {
+    hasPrev: opened ? true : tabIdx > 0,
+    hasNext: !opened && tabIdx < TABS.length - 1,
+    prev: () => {
+      if (opened) {
+        setDir('s')
+        setOpenId(null)
+      } else goNow(TABS[tabIdx - 1].id, true)
+    },
+    next: () => goNow(TABS[tabIdx + 1].id, true),
+    onProgress: f => {
+      if (!opened) ink.current?.set(tabIdx + Math.max(-1, Math.min(1, f)))
+    },
+  })
+
+  // the open: once per session, a tap skips it
+  const [splash, setSplash] = useState<'on' | 'out' | 'off'>(() => (shouldSplash() ? 'on' : 'off'))
+  useEffect(() => {
+    if (splash !== 'on') return
+    try {
+      sessionStorage.setItem('sillage.opened', '1')
+    } catch {
+      /* private mode: it plays again next time, which is fine */
+    }
+    const t = setTimeout(() => setSplash('out'), 2400)
+    return () => clearTimeout(t)
+  }, [splash])
   useEffect(() => {
     document.title = opened ? `${opened.short}, Sillage` : 'Sillage'
   }, [opened])
@@ -65,18 +122,19 @@ export default function SillageApp() {
   useEffect(() => mountGlass(), [])
 
   return (
-    <div className="app" style={{ ...cssVars(), ...(haze ? { '--haze': haze } : null) } as CSSProperties}>
+    <div ref={appEl} className="app" data-splash={splash === 'on' ? 'on' : undefined} style={{ ...cssVars(), ...(haze ? { '--haze': haze } : null) } as CSSProperties}>
       <div className="haze" aria-hidden>
         <i />
         <i />
         <i />
       </div>
+      <div className="grain" aria-hidden />
       <main className="col">
         <div className="top">
           <span className="wordmark">SILLAGE</span>
         </div>
 
-        <div className={opened ? 'page page--scent' : 'page'} key={opened ? opened.id : tab}>
+        <div ref={pageEl} className={opened ? 'page page--scent' : 'page'} data-dir={dir || undefined} key={opened ? opened.id : tab}>
         {opened ? (
           <ScentPage
             bottle={opened}
@@ -121,7 +179,7 @@ export default function SillageApp() {
 
       <nav className="tabs glass" data-rim="t" aria-label="Sillage">
         <ul style={{ '--i': TABS.findIndex(t => t.id === tab) } as CSSProperties} data-away={opened ? '' : undefined}>
-          <li className="tab-ink" aria-hidden />
+          <li className="tab-ink" ref={inkEl} aria-hidden />
           {TABS.map(t => (
             <li key={t.id}>
               <button type="button" aria-current={!opened && tab === t.id ? 'page' : undefined} onClick={() => go(t.id)}>
@@ -131,6 +189,16 @@ export default function SillageApp() {
           ))}
         </ul>
       </nav>
+      {splash !== 'off' && <Splash leaving={splash === 'out'} skip={() => setSplash('out')} done={() => setSplash('off')} />}
     </div>
   )
+}
+
+function shouldSplash() {
+  try {
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return false
+    return !sessionStorage.getItem('sillage.opened')
+  } catch {
+    return false
+  }
 }
