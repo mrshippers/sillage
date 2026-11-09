@@ -9,8 +9,7 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest run",
-    "test:watch": "vitest",
-    "gen:favicon": "vite-node scripts/gen-favicon.ts"
+    "test:watch": "vitest"
   },
   "dependencies": {
     "react": "^19.2.6",
