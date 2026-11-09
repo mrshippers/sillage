@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, type CSSProperties } from 'react'
 import { ENERGY_MAP, OCCASION_MAP, TIME_MAP, WEATHER_MAP } from '../domain/selector'
 import { fromProfile, type Bottle } from './bottles'
 import { scoreOne } from './data'
@@ -17,16 +17,24 @@ export default function Tonight({
   open,
   wornToday,
   toggleWorn,
+  onPick,
 }: {
   shelf: Bottle[]
   open: (id: string) => void
   wornToday: (id: string) => boolean
   toggleWorn: (id: string) => void
+  onPick?: (stain: string | null) => void
 }) {
   const now = new Date()
   const season = currentSeason(now)
   const profiled = useMemo(() => shelf.filter(b => b.profile).map(b => b.profile!), [shelf])
   const pick = useMemo(() => (profiled.length ? fromProfile(scentOfDay(now, profiled)) : null), [profiled]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const stain = pick?.stain ?? null
+  useEffect(() => {
+    onPick?.(stain)
+    return () => onPick?.(null)
+  }, [stain, onPick])
 
   const [weather, setWeather] = useState<string[]>([])
   const [occasion, setOccasion] = useState('')
@@ -107,10 +115,10 @@ export default function Tonight({
 
       {asked ? (
         <ol className="rack" aria-label="Best for the evening">
-          {results.map(({ f, score }) => {
+          {results.map(({ f, score }, r) => {
             const b = fromProfile(f)
             return (
-              <li key={b.id} className="rack-row">
+              <li key={b.id} className="rack-row" style={{ '--r': r } as CSSProperties}>
                 <div>
                   <Strip bottle={b} size="row" onClick={() => open(b.id)} />
                   <Chroma bottle={b} />

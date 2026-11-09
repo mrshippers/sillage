@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react'
 import type { Ownership } from '../domain/types'
 import { axisValues, fromProfile, type Bottle } from './bottles'
 import { chemistryOf, FRAGRANCES } from './data'
@@ -99,8 +100,8 @@ export default function ScentPage({
         <>
           <h2 className="h2">Its profile</h2>
           <ul className="bars">
-            {axes.map(a => (
-              <li key={a.key}>
+            {axes.map((a, k) => (
+              <li key={a.key} style={{ '--k': k } as CSSProperties}>
                 <span>{a.label}</span>
                 <span className="bar" aria-hidden>
                   <i style={{ width: `${a.value * 10}%` }} />

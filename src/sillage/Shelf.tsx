@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, type CSSProperties } from 'react'
 import type { Ownership } from '../domain/types'
 import type { Bottle } from './bottles'
 import { Chroma, Strip } from './Strip'
@@ -74,11 +74,11 @@ export default function Shelf({
 
       {list.length === 0 ? <p className="empty">Nothing matches.</p> : null}
       <ul className="rack">
-        {list.map(b => {
+        {list.map((b, r) => {
           const score = scoreOf(b.id)
           const st = statusOf(b.id)
           return (
-            <li key={b.id} className="rack-row">
+            <li key={b.id} className="rack-row" style={{ '--r': r } as CSSProperties}>
               <div>
                 <Strip bottle={b} size="row" onClick={() => open(b.id)} />
                 <Chroma bottle={b} />

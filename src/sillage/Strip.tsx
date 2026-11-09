@@ -1,4 +1,4 @@
-import type { CSSProperties, ReactNode } from 'react'
+import type { CSSProperties, PointerEvent, ReactNode } from 'react'
 import { axisValues, type Bottle } from './bottles'
 
 /* The smelling strip. Paper, the name pencilled on it, the juice's stain at
@@ -16,6 +16,8 @@ export function Strip({
 }) {
   const style = bottle.stain ? ({ '--stain': bottle.stain } as CSSProperties) : undefined
   const cls = `strip strip--${size}${bottle.stain ? '' : ' strip--blank'}`
+  // the hero follows a finger or pointer: a little tilt, and the light slides across the paper
+  const hero = size === 'hero' ? { onPointerMove: tilt, onPointerLeave: rest, onPointerCancel: rest } : {}
   const inner = (
     <span className="strip-in">
       <span className="strip-house">{bottle.house}</span>
@@ -27,14 +29,29 @@ export function Strip({
     </span>
   )
   return onClick ? (
-    <button type="button" className={cls} style={style} onClick={onClick} aria-label={`Open ${bottle.name}`}>
+    <button type="button" className={cls} style={style} data-bottle={bottle.id} onClick={onClick} aria-label={`Open ${bottle.name}`} {...hero}>
       {inner}
     </button>
   ) : (
-    <div className={cls} style={style}>
+    <div className={cls} style={style} data-bottle={bottle.id} {...hero}>
       {inner}
     </div>
   )
+}
+
+function tilt(e: PointerEvent<HTMLElement>) {
+  const el = e.currentTarget
+  const r = el.getBoundingClientRect()
+  const x = (e.clientX - r.left) / r.width
+  const y = (e.clientY - r.top) / r.height
+  el.style.setProperty('--rx', `${((0.5 - y) * 7).toFixed(2)}deg`)
+  el.style.setProperty('--ry', `${((x - 0.5) * 9).toFixed(2)}deg`)
+  el.style.setProperty('--mx', `${(x * 100).toFixed(1)}%`)
+  el.style.setProperty('--my', `${(y * 100).toFixed(1)}%`)
+}
+function rest(e: PointerEvent<HTMLElement>) {
+  e.currentTarget.style.removeProperty('--rx')
+  e.currentTarget.style.removeProperty('--ry')
 }
 
 /* The trail it leaves: length is longevity, spread is projection, both from
@@ -57,7 +74,7 @@ export function Trail({ bottle }: { bottle: Bottle }) {
             <stop offset="1" stopColor="var(--gold)" stopOpacity="0" />
           </linearGradient>
         </defs>
-        <path d={d} fill={`url(#t-${bottle.id})`} />
+        <path className="trail-wake" d={d} fill={`url(#t-${bottle.id})`} />
         <line x1="0" x2={W} y1={cy} y2={cy} stroke="var(--rule)" strokeWidth="1" />
       </svg>
       <figcaption className="trail-cap">
@@ -74,8 +91,8 @@ export function Chroma({ bottle }: { bottle: Bottle }) {
   if (!axes.length) return null
   return (
     <span className="chroma" aria-hidden>
-      {axes.map(a => (
-        <i key={a.key} style={{ opacity: 0.08 + (a.value / 10) * 0.92 }} />
+      {axes.map((a, k) => (
+        <i key={a.key} style={{ opacity: 0.08 + (a.value / 10) * 0.92, '--k': k } as CSSProperties} />
       ))}
     </span>
   )
