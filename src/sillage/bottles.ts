@@ -1,6 +1,8 @@
 /* One shape for every bottle on screen. The hand-profiled collection carries
  * its profile; a bottle you add carries none, so no engine, chart or score can
  * run on numbers that do not exist. Pure. */
+import { SEED_SCENTS } from '../domain/catalogue.seed'
+import type { Layer } from '../domain/types'
 import { FRAGRANCES, type Fragrance } from './data'
 import type { OwnBottle } from './wardrobeState'
 
@@ -54,4 +56,17 @@ export function noteIndex(bottles: readonly Bottle[]): { note: string; ids: stri
   const m = new Map<string, string[]>()
   for (const b of bottles) for (const n of b.notes) m.set(n, [...(m.get(n) ?? []), b.id])
   return [...m].map(([note, ids]) => ({ note, ids })).sort((a, b) => b.ids.length - a.ids.length || a.note.localeCompare(b.note))
+}
+
+const key = (x: string) => x.toLowerCase().replace(/[^a-z0-9]/g, '')
+const SEED_LAYERS = new Map(SEED_SCENTS.map(sc => [key(sc.brand + sc.name), new Map(sc.notes.map(n => [key(n.name), n.layer]))]))
+
+/** the bottle's own notes, placed top / heart / base only where the catalogue
+ * names that exact note for that exact bottle; everything else lands in `rest`.
+ * null when the catalogue places none of them. Never guessed. */
+export function layeredNotes(b: Bottle): (Record<Layer, string[]> & { rest: string[] }) | null {
+  const seed = SEED_LAYERS.get(key(b.name))
+  const out = { top: [] as string[], heart: [] as string[], base: [] as string[], rest: [] as string[] }
+  for (const n of b.notes) out[seed?.get(key(n)) ?? 'rest'].push(n)
+  return out.top.length + out.heart.length + out.base.length ? out : null
 }

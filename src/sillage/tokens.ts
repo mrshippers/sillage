@@ -38,7 +38,7 @@ export const color = {
   glassTint: '#1a121d',
   glassInk: '#fbf8f3',
 
-  // iridescent flecks: the logo mark's spritz only (logo-v4), never UI
+  // iridescent: the logo mark's spritz (logo-v4) and the foil on the holographic card, nowhere else
   iris: ['#ff9bc4', '#8fd0c4', '#b89bff'] as const,
 } as const
 
@@ -62,7 +62,18 @@ export function cssVars(): Record<string, string> {
     '--gold-light': color.goldLight,
     '--glass-tint': color.glassTint,
     '--glass-ink': color.glassInk,
+    '--plum': color.plum,
+    '--iris-1': color.iris[0],
+    '--iris-2': color.iris[1],
+    '--iris-3': color.iris[2],
     '--serif': font.display,
     '--sans': font.body,
   }
+}
+
+export function hexToRgb(hex: string | null | undefined): [number, number, number] | null {
+  const m = /^#?([0-9a-f]{6})$/i.exec((hex ?? '').trim())
+  if (!m) return null
+  const n = parseInt(m[1], 16)
+  return [(n >> 16) & 255, (n >> 8) & 255, n & 255]
 }

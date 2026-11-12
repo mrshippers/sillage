@@ -8,6 +8,7 @@ import { morph } from './motion'
 import Notes from './Notes'
 import ScentPage from './ScentPage'
 import Shelf from './Shelf'
+import Smoke from './Smoke'
 import Splash from './Splash'
 import Tonight from './Tonight'
 import { cssVars } from './tokens'
@@ -123,11 +124,7 @@ export default function SillageApp() {
 
   return (
     <div ref={appEl} className="app" data-splash={splash === 'on' ? 'on' : undefined} style={{ ...cssVars(), ...(haze ? { '--haze': haze } : null) } as CSSProperties}>
-      <div className="haze" aria-hidden>
-        <i />
-        <i />
-        <i />
-      </div>
+      <Smoke tint={haze} />
       <div className="grain" aria-hidden />
       <main className="col">
         <div className="top">

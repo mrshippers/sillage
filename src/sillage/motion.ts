@@ -1,6 +1,6 @@
 import { flushSync } from 'react-dom'
 
-type VT = Document & { startViewTransition?: (cb: () => void) => unknown }
+type VT = Document & { startViewTransition?: (cb: () => void) => { ready: Promise<void>; finished: Promise<void> } }
 
 /* Run a state change as a view transition, so the page glides instead of
  * snapping. With `id`, the strip for that bottle is named on both sides, so the
@@ -14,8 +14,11 @@ export function morph(update: () => void, id?: string) {
     if (el) el.style.viewTransitionName = 'bottle'
   }
   name()
-  doc.startViewTransition(() => {
+  const vt = doc.startViewTransition(() => {
     flushSync(update)
     name()
   })
+  // a skipped transition (resize, a second tap) still applies the change; it is not an error
+  vt?.ready?.catch(() => {})
+  vt?.finished?.catch(() => {})
 }

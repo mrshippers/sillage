@@ -1,7 +1,9 @@
 import { useMemo, useState, type CSSProperties } from 'react'
 import type { Ownership } from '../domain/types'
 import type { Bottle } from './bottles'
+import { FAMILIES } from './families'
 import { Chroma, Strip } from './Strip'
+import Wheel from './Wheel'
 import { STATUS_LABEL } from './wardrobeState'
 
 type Sort = 'yours' | 'worn' | 'name'
@@ -23,6 +25,7 @@ export default function Shelf({
   const [query, setQuery] = useState('')
   const [status, setStatus] = useState<Ownership | 'all'>('owned')
   const [sort, setSort] = useState<Sort>('yours')
+  const [family, setFamily] = useState<number | null>(null)
 
   const counts = useMemo(() => {
     const c: Record<Ownership, number> = { owned: 0, finished: 0, wishlist: 0 }
@@ -30,10 +33,14 @@ export default function Shelf({
     return c
   }, [bottles, statusOf])
 
+  // the wheel counts the bottles under the current shelf / finished / wishlist choice, from their profiles
+  const inStatus = useMemo(() => bottles.filter(b => status === 'all' || statusOf(b.id) === status), [bottles, status, statusOf])
+  const familyCounts = useMemo(() => FAMILIES.map(f => inStatus.filter(b => b.profile && f.test(b.profile)).length), [inStatus])
+
   const list = useMemo(() => {
     const q = query.trim().toLowerCase()
-    return bottles
-      .filter(b => status === 'all' || statusOf(b.id) === status)
+    return inStatus
+      .filter(b => family === null || (b.profile ? FAMILIES[family].test(b.profile) : false))
       .filter(b => !q || b.name.toLowerCase().includes(q) || b.notes.some(n => n.toLowerCase().includes(q)) || (b.family ?? '').toLowerCase().includes(q))
       .sort((a, b) =>
         sort === 'name'
@@ -42,7 +49,7 @@ export default function Shelf({
             ? wearCount(b.id) - wearCount(a.id) || a.short.localeCompare(b.short)
             : (scoreOf(b.id) ?? -1) - (scoreOf(a.id) ?? -1) || a.short.localeCompare(b.short),
       )
-  }, [bottles, query, status, sort, statusOf, scoreOf, wearCount])
+  }, [inStatus, family, query, sort, scoreOf, wearCount])
 
   return (
     <>
@@ -51,6 +58,8 @@ export default function Shelf({
         {counts.owned} on it{counts.finished ? `, ${counts.finished} finished` : ''}
         {counts.wishlist ? `, ${counts.wishlist} wanted` : ''}.
       </p>
+
+      <Wheel counts={familyCounts} total={inStatus.length} sel={family} setSel={setFamily} />
 
       <label className="label" htmlFor="shelf-q">
         Find a bottle or a note
@@ -72,7 +81,7 @@ export default function Shelf({
         ))}
       </div>
 
-      {list.length === 0 ? <p className="empty">Nothing matches.</p> : null}
+      {list.length === 0 ? <p className="empty">{family !== null && !query ? `No ${FAMILIES[family].name.toLowerCase()} here yet. A gap in your nose.` : 'Nothing matches.'}</p> : null}
       <ul className="rack">
         {list.map((b, r) => {
           const score = scoreOf(b.id)

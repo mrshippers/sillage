@@ -2,6 +2,7 @@ import type { CSSProperties } from 'react'
 import type { Ownership } from '../domain/types'
 import { axisValues, fromProfile, type Bottle } from './bottles'
 import { chemistryOf, FRAGRANCES } from './data'
+import HoloCard from './HoloCard'
 import { Strip, Trail } from './Strip'
 import { STATUS_LABEL } from './wardrobeState'
 
@@ -88,13 +89,7 @@ export default function ScentPage({
       </p>
 
       <h2 className="h2">In the bottle</h2>
-      <div className="notes">
-        {bottle.notes.map(n => (
-          <button key={n} type="button" className="note note-link" onClick={() => openNote(n)}>
-            {n}
-          </button>
-        ))}
-      </div>
+      <HoloCard bottle={bottle} openNote={openNote} />
 
       {p ? (
         <>

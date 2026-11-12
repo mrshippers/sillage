@@ -292,17 +292,9 @@
 @keyframes waft { from { transform: scaleY(0.9) skewX(0deg); } to { transform: scaleY(1.1) skewX(-3deg); } }
 @keyframes grow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
 @keyframes pop { 0% { transform: scale(0.94); } 100% { transform: scale(1); } }
-@keyframes roam-a { from { translate: -12vmax -8vmax; scale: 1; } to { translate: 10vmax 6vmax; scale: 1.25; } }
-@keyframes roam-b { from { translate: 14vmax 10vmax; scale: 1.2; } to { translate: -8vmax -12vmax; scale: 0.95; } }
-@keyframes roam-c { from { translate: 0 14vmax; scale: 0.9; } to { translate: -4vmax -6vmax; scale: 1.3; } }
 
-/* the smoke: three soft clouds that wander behind the page and carry the
-   colour of the strip in front of you. Only transforms move, so it is cheap. */
-.haze { position: fixed; inset: 0; overflow: hidden; pointer-events: none; z-index: 0; }
-.haze i { position: absolute; width: 90vmax; height: 90vmax; border-radius: 50%; filter: blur(70px); will-change: translate, scale; }
-.haze i:nth-child(1) { left: -35vmax; top: -30vmax; background: radial-gradient(closest-side, color-mix(in oklab, var(--haze) 64%, transparent), transparent); animation: roam-a 28s ease-in-out infinite alternate; }
-.haze i:nth-child(2) { right: -45vmax; top: 20vmax; background: radial-gradient(closest-side, color-mix(in oklab, var(--plum, #8b5c8f) 44%, transparent), transparent); animation: roam-b 36s ease-in-out infinite alternate; }
-.haze i:nth-child(3) { left: -20vmax; bottom: -55vmax; background: radial-gradient(closest-side, color-mix(in oklab, var(--gold) 28%, transparent), transparent); animation: roam-c 32s ease-in-out infinite alternate; }
+/* the smoke: a canvas drawn small and stretched (see Smoke.tsx) */
+.smoke { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; filter: blur(12px); }
 .col { position: relative; z-index: 1; }
 .tabs { view-transition-name: tabs; }
 
@@ -385,3 +377,72 @@
 @keyframes sheen { from { background-position: 130% 0; } to { background-position: -30% 0; } }
 .splash-rule { width: 168px; height: 1px; background: linear-gradient(90deg, transparent, var(--gold), transparent); transform-origin: 50% 50%; animation: grow 1100ms 1100ms var(--ease-out) both; }
 .splash-tag { font-size: 12px; letter-spacing: 0.34em; padding-left: 0.34em; text-transform: uppercase; color: var(--graphite); animation: rise 800ms 1500ms var(--ease-out) both; }
+
+/* ── the notes field ────────────────────────────────────────── */
+.nf { position: relative; height: 560px; margin: 18px -8px 0; opacity: 0; transition: opacity 500ms var(--ease-out); }
+.nf[data-ready] { opacity: 1; }
+.nf-note { position: absolute !important; left: 0; top: 0; display: grid !important; place-content: center; justify-items: center; gap: 1px; padding: 3px !important;
+  border-radius: 50% !important; touch-action: none; user-select: none; -webkit-user-select: none; will-change: transform; cursor: grab;
+  border: 1px solid color-mix(in oklab, var(--gold) calc(18% + var(--w) * 62%), var(--rule)) !important;
+  background: radial-gradient(120% 120% at 30% 20%, color-mix(in oklab, var(--gold) calc(var(--w) * 22%), var(--ground-raised)), color-mix(in oklab, var(--ground) 82%, transparent)) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 8px 22px rgba(0, 0, 0, 0.35); }
+.nf-note:active { cursor: grabbing; }
+.nf-name { font-family: var(--serif); font-size: 13px; line-height: 1.12; text-align: center; color: var(--ink); }
+.nf-count { font-size: 12px; color: var(--gold); font-variant-numeric: tabular-nums; }
+
+/* ── the scent wheel ────────────────────────────────────────── */
+@property --rot { syntax: '<angle>'; inherits: true; initial-value: 0deg; }
+.wheel { position: relative; margin: 18px auto 6px; touch-action: pan-y; user-select: none; -webkit-user-select: none; }
+.wheel-ring { position: absolute; inset: 0; transform: rotate(var(--rot)); will-change: transform; }
+.wheel-ring::before { content: ''; position: absolute; inset: 38px; border-radius: 50%; border: 1px solid var(--rule); }
+.wheel-node { position: absolute !important; width: 64px; height: 76px; margin: -30px 0 0 -32px; display: flex !important; flex-direction: column; align-items: center; gap: 4px;
+  transform: rotate(calc(-1 * var(--rot))); animation: rise 600ms var(--ease-out) both; animation-delay: calc(var(--i) * 60ms); }
+.wheel-gem { display: grid; place-items: center; width: 52px; height: 52px; border-radius: 50%; color: var(--c);
+  border: 1px solid var(--rule); background: radial-gradient(115% 95% at 32% 22%, color-mix(in oklab, var(--c) 30%, var(--ground-raised)), var(--ground) 70%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 8px 20px rgba(0, 0, 0, 0.4); transition: border-color 300ms, scale 520ms var(--spring); animation: bob 6s calc(var(--i) * -0.9s) ease-in-out infinite alternate; }
+@keyframes bob { from { translate: 0 -2px; } to { translate: 0 3px; } }
+.wheel-node:active .wheel-gem { scale: 0.94; }
+.wheel-node[aria-pressed='true'] .wheel-gem { border-color: var(--gold); border-width: 2px; color: var(--gold-light); scale: 1.12; }
+.wheel-node[data-empty] .wheel-gem { opacity: 0.4; border-style: dashed; }
+.wheel-label { font-size: 12px; color: var(--graphite); }
+.wheel-node[aria-pressed='true'] .wheel-label { color: var(--ink); font-weight: 600; }
+.wheel-hub { position: absolute !important; left: 50%; top: 50%; width: 124px; height: 124px; margin: -62px 0 0 -62px; border-radius: 50% !important; display: grid !important; place-content: center; justify-items: center; gap: 4px;
+  border: 1px solid var(--rule) !important; background: radial-gradient(120% 120% at 30% 20%, var(--ground-raised), var(--ground)) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07), 0 0 40px color-mix(in oklab, var(--gold) 14%, transparent); transition: transform 520ms var(--spring); }
+.wheel-hub:active { transform: scale(0.96); transition-duration: 90ms; }
+.wheel-hub-name { font-family: var(--serif); font-style: italic; font-size: 19px; color: var(--ink); }
+.wheel-hub-count { font-size: 12px; color: var(--gold); animation: rise 420ms var(--ease-out) both; }
+
+/* ── the holographic card ───────────────────────────────────── */
+/* A surface, not a fill: the bottle's colour from one corner, a depth pool
+   from the other, grain, a lit rim, and a foil that follows the finger. */
+.holo { position: relative; overflow: hidden; padding: 20px 20px 18px; border-radius: 4px; isolation: isolate; will-change: transform;
+  --stain: var(--plum);
+  background:
+    radial-gradient(120% 90% at 12% 0%, color-mix(in oklab, var(--stain) 62%, transparent), transparent 62%),
+    radial-gradient(100% 90% at 100% 100%, color-mix(in oklab, var(--stain) 26%, #000), transparent 70%),
+    linear-gradient(160deg, #201623, #0c080e);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.5); }
+.holo::before { content: ''; position: absolute; inset: 0; border-radius: inherit; padding: 1px; pointer-events: none; z-index: 2;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.04) 40%, color-mix(in oklab, var(--gold) 60%, transparent));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0); }
+.holo-foil { position: absolute; inset: -20%; z-index: 1; pointer-events: none; mix-blend-mode: color-dodge; opacity: 0.14; transition: opacity 400ms;
+  background: linear-gradient(115deg, transparent 30%, var(--iris-1) 42%, var(--iris-2) 50%, var(--iris-3) 58%, transparent 70%);
+  background-size: 240% 240%; background-position: var(--mx, 60%) var(--my, 40%); }
+.holo:is(:hover, :active) .holo-foil { opacity: 0.34; }
+.holo-grain { position: absolute; inset: 0; z-index: 1; pointer-events: none; opacity: 0.16; mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.9 0'/></filter><rect width='160' height='160' filter='url(%23n)'/></svg>"); }
+.holo > :not(.holo-foil, .holo-grain) { position: relative; z-index: 3; }
+.holo-head { display: block; margin-bottom: 16px; }
+.holo-house { display: block; font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--graphite); }
+.holo-name { display: block; font-family: var(--serif); font-style: italic; font-size: 30px; line-height: 1.05; color: var(--ink); margin-top: 2px; }
+.holo-body { display: grid; grid-template-columns: 3px 1fr; gap: 14px; }
+.holo-vol { border-radius: 2px; background: linear-gradient(180deg, color-mix(in oklab, var(--gold-light) 25%, transparent), var(--gold) 55%, var(--gold)); transform-origin: 50% 0; animation: vol 1200ms 300ms var(--ease-out) both; }
+@keyframes vol { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+.holo-layer + .holo-layer { margin-top: 12px; }
+.holo-rest { margin-top: 14px; }
+.holo-body + .holo-rest { padding-top: 12px; border-top: 1px solid rgba(255, 255, 255, 0.08); }
+.holo-label { display: block; font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--graphite); margin-bottom: 2px; }
+.holo-notes { display: flex; flex-wrap: wrap; gap: 2px 14px; }
+.holo-note { font-family: var(--serif); font-size: 17px; color: var(--ink); min-height: 32px; text-decoration: underline; text-decoration-color: rgba(255, 255, 255, 0.18); text-underline-offset: 5px; }
+@media (prefers-reduced-motion: reduce) { .nf { opacity: 1; } }
