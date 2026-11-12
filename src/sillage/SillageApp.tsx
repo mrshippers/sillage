@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type PointerEvent } from 'react'
 import './atelier.css'
-import { allBottles } from './bottles'
+import { allBottles, fromProfile } from './bottles'
+import { scentOfDay } from './families'
 import { createSpring, type Spring } from './fluid'
 import { mountGlass } from './glass'
 import Lab from './Lab'
@@ -9,10 +10,10 @@ import Notes from './Notes'
 import ScentPage from './ScentPage'
 import Shelf from './Shelf'
 import Smoke from './Smoke'
-import Splash from './Splash'
 import Tonight from './Tonight'
 import { cssVars } from './tokens'
 import { useSwipePages } from './useSwipePages'
+import Welcome from './Welcome'
 import { useBottleStatus, useOwnBottles, usePersisted, useWears } from './wardrobeState'
 import You from './You'
 
@@ -113,9 +114,16 @@ export default function SillageApp() {
     } catch {
       /* private mode: it plays again next time, which is fine */
     }
-    const t = setTimeout(() => setSplash('out'), 2400)
-    return () => clearTimeout(t)
   }, [splash])
+  const skipWelcome = useCallback(() => setSplash(s => (s === 'on' ? 'out' : s)), [])
+  // the welcome is shot on tonight's bottle; an empty shelf gets the house's own flacon
+  const welcomeBottle = useMemo(() => {
+    const profiled = shelf.filter(b => b.profile).map(b => b.profile!)
+    const b = profiled.length ? fromProfile(scentOfDay(new Date(), profiled)) : null
+    return b ? { id: b.id, house: b.house, name: b.short, stain: b.stain, notes: b.notes } : { id: 'sillage', house: 'Sillage', name: 'Sillage', stain: '#caa25f' }
+    // the shot is chosen once, when the app opens
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
   useEffect(() => {
     document.title = opened ? `${opened.short}, Sillage` : 'Sillage'
   }, [opened])
@@ -193,7 +201,7 @@ export default function SillageApp() {
           ))}
         </ul>
       </nav>
-      {splash !== 'off' && <Splash leaving={splash === 'out'} skip={() => setSplash('out')} done={() => setSplash('off')} />}
+      {splash !== 'off' && <Welcome bottle={welcomeBottle} leaving={splash === 'out'} skip={skipWelcome} done={() => setSplash('off')} />}
     </div>
   )
 }

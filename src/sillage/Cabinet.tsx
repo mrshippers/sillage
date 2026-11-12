@@ -35,9 +35,9 @@ export default function Cabinet({ bottles, open }: { bottles: Bottle[]; open: (i
       cab = createCabinet(c, { onFront: setFront, onOpen: i => open(list.current[i].id) })
       api.current = cab
       // the labels are drawn in the brand faces, so wait for them before stocking the shelf
-      Promise.all([document.fonts.load("400 84px 'Fraunces'"), document.fonts.load("500 34px 'Archivo'")])
+      Promise.all([document.fonts.load("400 84px 'Bodoni Moda Variable'"), document.fonts.load("500 34px 'Jost Variable'")])
         .catch(() => undefined)
-        .then(() => !gone && cab?.setBottles(list.current.map(b => ({ id: b.id, house: b.house, name: b.short, stain: b.stain }))))
+        .then(() => !gone && cab?.setBottles(list.current.map(b => ({ id: b.id, house: b.house, name: b.short, stain: b.stain, notes: b.notes }))))
     }, 380)
     return () => {
       gone = true
@@ -52,7 +52,7 @@ export default function Cabinet({ bottles, open }: { bottles: Bottle[]; open: (i
   const first = useRef(true)
   useEffect(() => {
     if (first.current) return void (first.current = false)
-    api.current?.setBottles(list.current.map(b => ({ id: b.id, house: b.house, name: b.short, stain: b.stain })))
+    api.current?.setBottles(list.current.map(b => ({ id: b.id, house: b.house, name: b.short, stain: b.stain, notes: b.notes })))
   }, [sig])
 
   if (!ok || !bottles.length) return null

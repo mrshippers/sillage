@@ -10,8 +10,8 @@
   --ink-dim: rgba(251, 248, 243, 0.6);
   --glass-border: rgba(255, 255, 255, 0.16);
   --radius: 18px;
-  --serif: 'Fraunces', Georgia, serif;
-  --sans: 'Archivo', system-ui, sans-serif;
+  --serif: 'Bodoni Moda Variable', 'Bodoni 72', Didot, Georgia, serif;
+  --sans: 'Jost Variable', 'Futura', 'Avenir Next', system-ui, sans-serif;
 }
 * { box-sizing: border-box; }
 body {

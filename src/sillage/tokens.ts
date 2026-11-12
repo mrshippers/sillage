@@ -43,8 +43,8 @@ export const color = {
 } as const
 
 export const font = {
-  display: "'Fraunces', Georgia, serif",
-  body: "'Archivo', 'Helvetica Neue', system-ui, sans-serif",
+  display: "'Bodoni Moda Variable', 'Bodoni 72', Didot, Georgia, serif",
+  body: "'Jost Variable', 'Futura', 'Avenir Next', system-ui, sans-serif",
 } as const
 
 export function cssVars(): Record<string, string> {

@@ -1,16 +1,25 @@
 import { useCallback, useEffect, useState } from 'react'
 import { createWardrobe } from '../domain/wardrobe'
 import type { Ownership } from '../domain/types'
+import { CHANGED, PERSONAL, PULLED } from '../cloud/cloud'
 
-// The collection in ./data is the owner's own, so a bottle with no entry is on
-// the shelf; only a change (finished, wishlist, a rating) is written. One store
-// per tab, on localStorage, through the typed domain wardrobe.
+// In personal mode the collection in ./data is the owner's own, so a bottle with
+// no entry is on the shelf and only a change is written. In the App Store build
+// (PERSONAL off) a bottle is yours only once you say so. One store per tab, on
+// localStorage, through the typed domain wardrobe; an account sync rewrites it.
 const wardrobe = createWardrobe()
+wardrobe.subscribe(() => window.dispatchEvent(new Event(CHANGED)))
+if (typeof window !== 'undefined') window.addEventListener(PULLED, () => wardrobe.reload())
 
-export const STATUS_LABEL: Record<Ownership, string> = {
+/** where a bottle lives for you; 'none' only outside personal mode */
+export type Status = Ownership | 'none'
+const DEFAULT: Status = PERSONAL ? 'owned' : 'none'
+
+export const STATUS_LABEL: Record<Status, string> = {
   owned: 'On the shelf',
   finished: 'Finished',
   wishlist: 'Wishlist',
+  none: 'Not yours yet',
 }
 
 export function useBottleStatus() {
@@ -20,7 +29,7 @@ export function useBottleStatus() {
     return () => void off()
   }, [])
   const statusOf = useCallback(
-    (id: number | string): Ownership => entries.find(e => e.scentId === String(id))?.ownership ?? 'owned',
+    (id: number | string): Status => entries.find(e => e.scentId === String(id))?.ownership ?? DEFAULT,
     [entries],
   )
   /** your 0-10 score, or null if you have not rated it */
@@ -28,11 +37,12 @@ export function useBottleStatus() {
     (id: number | string): number | null => entries.find(e => e.scentId === String(id))?.score ?? null,
     [entries],
   )
-  const setStatus = useCallback((id: number | string, status: Ownership) => {
+  const setStatus = useCallback((id: number | string, status: Status) => {
     const key = String(id)
     const has = wardrobe.get(key)
-    // back on the shelf with nothing else recorded: forget the entry; a rating keeps it
-    if (status === 'owned' && (!has || has.score === undefined)) wardrobe.remove(key)
+    // back to the default with nothing else recorded: forget the entry; a rating keeps it
+    if (status === DEFAULT && (!has || has.score === undefined)) wardrobe.remove(key)
+    else if (status === 'none') wardrobe.remove(key)
     else wardrobe.add(key, status)
   }, [])
   const rate = useCallback((id: number | string, score: number | null) => {
@@ -40,7 +50,7 @@ export function useBottleStatus() {
     if (score === null) {
       const has = wardrobe.get(key)
       if (!has) return
-      if (has.ownership === 'owned') wardrobe.remove(key)
+      if (has.ownership === DEFAULT) wardrobe.remove(key)
       else wardrobe.add(key, has.ownership) // keeps status, drops nothing else we store
       return
     }
@@ -68,6 +78,15 @@ function write(key: string, value: unknown) {
   } catch {
     // storage refused: holds for this visit only
   }
+  window.dispatchEvent(new Event(CHANGED))
+}
+
+/** re-read a stored value when an account sync rewrites storage */
+function usePulled(reread: () => void) {
+  useEffect(() => {
+    window.addEventListener(PULLED, reread)
+    return () => window.removeEventListener(PULLED, reread)
+  }, [reread])
 }
 
 /** A setting that survives a reload. A stored value outside `allowed` is ignored. */
@@ -97,6 +116,7 @@ export function todayLocal(d = new Date()): string {
 
 export function useWears() {
   const [wears, setWears] = useState<Wears>(() => read(WEARS_KEY, {}, isWears))
+  usePulled(useCallback(() => setWears(read(WEARS_KEY, {}, isWears)), []))
   const save = (next: Wears) => {
     setWears(next)
     write(WEARS_KEY, next)
@@ -149,6 +169,7 @@ export function parseOwnBottle(input: { name: string; house: string; notes: stri
 
 export function useOwnBottles() {
   const [own, setOwn] = useState<OwnBottle[]>(() => read(OWN_KEY, [], isOwn))
+  usePulled(useCallback(() => setOwn(read(OWN_KEY, [], isOwn)), []))
   const add = (b: OwnBottle) => {
     const next = [...own.filter(x => x.id !== b.id), b]
     setOwn(next)

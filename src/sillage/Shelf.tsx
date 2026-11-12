@@ -1,9 +1,8 @@
 import { lazy, Suspense, useMemo, useState, type CSSProperties } from 'react'
-import type { Ownership } from '../domain/types'
 import type { Bottle } from './bottles'
 import { FAMILIES } from './families'
 import { Chroma, Strip } from './Strip'
-import { STATUS_LABEL } from './wardrobeState'
+import { STATUS_LABEL, type Status } from './wardrobeState'
 
 type Sort = 'yours' | 'worn' | 'name'
 
@@ -28,18 +27,18 @@ export default function Shelf({
   open,
 }: {
   bottles: Bottle[]
-  statusOf: (id: string) => Ownership
+  statusOf: (id: string) => Status
   scoreOf: (id: string) => number | null
   wearCount: (id: string) => number
   open: (id: string) => void
 }) {
   const [query, setQuery] = useState('')
-  const [status, setStatus] = useState<Ownership | 'all'>('owned')
+  const [status, setStatus] = useState<Status | 'all'>('owned')
   const [sort, setSort] = useState<Sort>('yours')
   const [family, setFamily] = useState<number | null>(null)
 
   const counts = useMemo(() => {
-    const c: Record<Ownership, number> = { owned: 0, finished: 0, wishlist: 0 }
+    const c: Record<Status, number> = { owned: 0, finished: 0, wishlist: 0, none: 0 }
     bottles.forEach(b => c[statusOf(b.id)]++)
     return c
   }, [bottles, statusOf])
@@ -106,7 +105,15 @@ export default function Shelf({
         ))}
       </div>
 
-      {list.length === 0 ? <p className="empty">{family !== null && !query ? `No ${FAMILIES[family].name.toLowerCase()} here yet. A gap in your nose.` : 'Nothing matches.'}</p> : null}
+      {list.length === 0 ? (
+        <p className="empty">
+          {counts.owned === 0 && status === 'owned' && !query
+            ? 'Nothing on your shelf yet. Choose Every bottle to find the ones you own, or add your own under You.'
+            : family !== null && !query
+              ? `No ${FAMILIES[family].name.toLowerCase()} here yet. A gap in your nose.`
+              : 'Nothing matches.'}
+        </p>
+      ) : null}
       <ul className="rack">
         {list.map((b, r) => {
           const score = scoreOf(b.id)

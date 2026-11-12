@@ -1,6 +1,7 @@
 import * as THREE from 'three'
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js'
-import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js'
+import { buildBottle, createMaterials, MAX_WIDTH } from './bottleModel'
+import { specFor } from './bottleSpecs'
 import { createSpring, project } from './fluid'
 
 /* The cabinet: a lacquered turntable in a lit niche, stocked with your bottles
@@ -10,66 +11,17 @@ import { createSpring, project } from './fluid'
  * bottle to open it, any other to bring it round. Frames are drawn only while
  * something moves. */
 
-export type ShelfBottle = { id: string; house: string; name: string; stain: string | null }
+export type ShelfBottle = { id: string; house: string; name: string; stain: string | null; notes?: string[] }
 export type CabinetApi = { setBottles: (b: ShelfBottle[]) => void; dispose: () => void }
 
-const FALLBACK_JUICE = '#cdbf9f'
-
-/** a stable small number from an id, so a bottle keeps its shape and cap */
-export function seedOf(id: string): number {
-  let h = 2166136261
-  for (let i = 0; i < id.length; i++) h = Math.imul(h ^ id.charCodeAt(i), 16777619)
-  return (h >>> 0) % 997
-}
-
-/** three generic luxury silhouettes: squat square, tall column, wide slab */
-export const SHAPES = [
-  { w: 0.6, h: 0.78, d: 0.42, r: 0.075 },
-  { w: 0.5, h: 0.96, d: 0.4, r: 0.07 },
-  { w: 0.7, h: 0.66, d: 0.36, r: 0.08 },
-] as const
-
 /** ring radius that keeps a bottle's width plus air between neighbours */
-export const ringRadius = (n: number) => Math.max(1.7, (n * 1.08) / (2 * Math.PI))
+export const ringRadius = (n: number) => Math.max(1.7, (n * (MAX_WIDTH + 0.3)) / (2 * Math.PI))
 
 /** angle of the slot nearest the front for a ring turned by `theta` */
 export function frontIndex(theta: number, n: number): number {
   if (!n) return -1
   const step = (2 * Math.PI) / n
   return (((Math.round(-theta / step) % n) + n) % n)
-}
-
-function labelTexture(b: ShelfBottle): THREE.CanvasTexture {
-  const c = document.createElement('canvas')
-  c.width = 512
-  c.height = 400
-  const g = c.getContext('2d')!
-  const paper = g.createLinearGradient(0, 0, 0, 400)
-  paper.addColorStop(0, '#f1ebdf')
-  paper.addColorStop(1, '#ddd4c3')
-  g.fillStyle = paper
-  g.fillRect(0, 0, 512, 400)
-  g.strokeStyle = 'rgba(58,51,48,0.35)'
-  g.lineWidth = 3
-  g.strokeRect(22, 22, 468, 356)
-  g.fillStyle = '#6f6660'
-  g.textAlign = 'center'
-  g.font = "500 34px 'Archivo', 'Helvetica Neue', sans-serif"
-  const house = b.house.toUpperCase().split('').join(' ')
-  g.fillText(house, 256, 112, 440)
-  g.fillStyle = '#2a2420'
-  let size = 84
-  g.font = `400 ${size}px 'Fraunces', Georgia, serif`
-  while (g.measureText(b.name).width > 430 && size > 40) g.font = `400 ${(size -= 4)}px 'Fraunces', Georgia, serif`
-  g.fillText(b.name, 256, 236)
-  g.fillStyle = 'rgba(58,51,48,0.55)'
-  g.fillRect(206, 286, 100, 2)
-  g.font = "500 26px 'Archivo', 'Helvetica Neue', sans-serif"
-  g.fillText('E A U   D E   P A R F U M', 256, 336)
-  const t = new THREE.CanvasTexture(c)
-  t.colorSpace = THREE.SRGBColorSpace
-  t.anisotropy = 4
-  return t
 }
 
 function blobTexture(): THREE.CanvasTexture {
@@ -189,17 +141,7 @@ export function createCabinet(
   let lip: THREE.Mesh | null = null
   const brass = new THREE.MeshStandardMaterial({ color: '#c9a35f', metalness: 1, roughness: 0.28 })
 
-  // shared bottle parts
-  const glass = new THREE.MeshPhysicalMaterial({
-    color: '#ffffff', metalness: 0, roughness: 0.02, transmission: 1, thickness: 0.55, ior: 1.5,
-    clearcoat: 1, clearcoatRoughness: 0.02, specularIntensity: 1, envMapIntensity: 1.6,
-    attenuationColor: new THREE.Color('#e9f4ef'), attenuationDistance: 2.4,
-  })
-  const capMats = [
-    new THREE.MeshStandardMaterial({ color: '#c9a35f', metalness: 1, roughness: 0.22 }), // brushed gold
-    new THREE.MeshPhysicalMaterial({ color: '#141114', roughness: 0.32, clearcoat: 1, clearcoatRoughness: 0.12 }), // black lacquer
-    new THREE.MeshStandardMaterial({ color: '#8d8a86', metalness: 1, roughness: 0.3 }), // gunmetal
-  ]
+  const mats = createMaterials()
   const blob = blobTexture()
   const blobMat = new THREE.MeshBasicMaterial({ map: blob, transparent: true, depthWrite: false, opacity: 0.85 })
 
@@ -208,52 +150,17 @@ export function createCabinet(
   let count = 0
   let R = ringRadius(1)
 
-  const disposables: { dispose: () => void }[] = [wallTex, lacquer, blob, blobMat, plinthMat, brass, glass, ...capMats, env, pmrem]
+  const disposables: { dispose: () => void }[] = [wallTex, lacquer, blob, blobMat, plinthMat, brass, mats, env, pmrem]
 
-  function buildBottle(b: ShelfBottle): Slot {
-    const s = seedOf(b.id)
-    const shape = SHAPES[s % SHAPES.length]
-    const group = new THREE.Group()
-    const owned: { dispose: () => void }[] = []
-    const geo = <T extends THREE.BufferGeometry>(g: T) => (owned.push(g), g)
-
-    const body = new THREE.Mesh(geo(new RoundedBoxGeometry(shape.w, shape.h, shape.d, 5, shape.r)), glass)
-    body.position.y = shape.h / 2
-    // the juice, inside the walls and above the heavy glass base
-    // the authored juice colour, its lightness lifted so it reads as liquid through glass (the hue is kept)
-    const juiceColor = new THREE.Color(b.stain ?? FALLBACK_JUICE)
-    const hsl = { h: 0, s: 0, l: 0 }
-    juiceColor.getHSL(hsl)
-    juiceColor.setHSL(hsl.h, Math.min(1, hsl.s * 1.15 + 0.08), Math.max(hsl.l, 0.5))
-    // opaque on purpose: transmission only refracts what is opaque behind the glass
-    const juiceMat = new THREE.MeshPhysicalMaterial({ color: juiceColor, roughness: 0.18, clearcoat: 0.5, emissive: juiceColor, emissiveIntensity: 0.22 })
-    owned.push(juiceMat)
-    const fillH = shape.h * 0.76
-    const juice = new THREE.Mesh(geo(new RoundedBoxGeometry(shape.w - 0.09, fillH, shape.d - 0.09, 4, shape.r * 0.6)), juiceMat)
-    juice.position.y = 0.09 + fillH / 2
-    const neck = new THREE.Mesh(geo(new THREE.CylinderGeometry(0.055, 0.06, 0.07, 32)), glass)
-    neck.position.y = shape.h + 0.035
-    const collar = new THREE.Mesh(geo(new THREE.CylinderGeometry(0.075, 0.075, 0.03, 40)), brass)
-    collar.position.y = shape.h + 0.08
-    const capMat = capMats[Math.floor(s / 3) % capMats.length]
-    const cap =
-      s % 2
-        ? new THREE.Mesh(geo(new RoundedBoxGeometry(0.24, 0.24, 0.24, 4, 0.04)), capMat)
-        : new THREE.Mesh(geo(new THREE.CylinderGeometry(0.12, 0.12, 0.3, 48)), capMat)
-    cap.position.y = shape.h + 0.095 + (s % 2 ? 0.12 : 0.15)
-    // the label, on the front face, just proud of the glass
-    const tex = labelTexture(b)
-    const labelMat = new THREE.MeshStandardMaterial({ map: tex, roughness: 0.7 })
-    owned.push(tex, labelMat)
-    const lw = shape.w * 0.72
-    const label = new THREE.Mesh(geo(new THREE.PlaneGeometry(lw, lw * 0.78)), labelMat)
-    label.position.set(0, shape.h * 0.5, shape.d / 2 + 0.003)
-    const shadow = new THREE.Mesh(geo(new THREE.PlaneGeometry(shape.w * 1.9, shape.d * 2.6)), blobMat)
+  function stock(b: ShelfBottle): Slot {
+    const spec = specFor(b.id)
+    const built = buildBottle(b, spec, mats)
+    const shadowGeo = new THREE.PlaneGeometry(spec.body.w * 1.9, spec.body.d * 2.6)
+    const shadow = new THREE.Mesh(shadowGeo, blobMat)
     shadow.rotation.x = -Math.PI / 2
     shadow.position.y = 0.002
-    group.add(shadow, juice, body, neck, collar, cap, label)
-    group.traverse(o => (o.userData.slot = group))
-    return { group, dispose: () => owned.forEach(o => o.dispose()) }
+    built.group.add(shadow)
+    return { group: built.group, dispose: () => (built.dispose(), shadowGeo.dispose()) }
   }
 
   function rebuildPlinth() {
@@ -331,7 +238,7 @@ export function createCabinet(
     R = ringRadius(count)
     rebuildPlinth()
     slots = list.map((b, i) => {
-      const slot = buildBottle(b)
+      const slot = stock(b)
       const a = (i * 2 * Math.PI) / count
       slot.group.position.set(Math.sin(a) * R, 0, Math.cos(a) * R)
       slot.group.rotation.y = a

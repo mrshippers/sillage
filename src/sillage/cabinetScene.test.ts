@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { frontIndex, ringRadius, seedOf, SHAPES } from './cabinetScene'
+import { MAX_WIDTH, seedOf } from './bottleModel'
+import { frontIndex, ringRadius } from './cabinetScene'
 
 describe('the cabinet', () => {
   it('names the bottle at the front for any turn, either way round', () => {
@@ -16,12 +17,24 @@ describe('the cabinet', () => {
   it('spaces the ring so neighbours never touch', () => {
     for (const n of [1, 3, 7, 15, 30]) {
       const gap = (2 * Math.PI * ringRadius(n)) / n
-      expect(gap).toBeGreaterThan(Math.max(...SHAPES.map(s => s.w)) + 0.15)
+      expect(gap).toBeGreaterThan(MAX_WIDTH + 0.15)
     }
   })
 
   it('gives a bottle the same shape every visit', () => {
     expect(seedOf('8')).toBe(seedOf('8'))
     expect(seedOf('8')).not.toBe(seedOf('9'))
+  })
+})
+
+describe('the real bottles', () => {
+  it('every named bottle has its own form, and none is wider than the shelf allows', async () => {
+    const { BOTTLE_SPECS } = await import('./bottleSpecs')
+    const { MAX_WIDTH } = await import('./bottleModel')
+    const ids = Object.keys(BOTTLE_SPECS)
+    expect(ids.length).toBe(14) // every curated bottle except the custom oud blend
+    const forms = new Set(ids.map(id => JSON.stringify({ b: BOTTLE_SPECS[id].body, c: BOTTLE_SPECS[id].cap, g: BOTTLE_SPECS[id].glass.tint })))
+    expect(forms.size).toBeGreaterThanOrEqual(11) // Hwyl/Aurner and the two Dior LCPs truly share a bottle
+    for (const id of ids) expect(Math.max(BOTTLE_SPECS[id].body.w, BOTTLE_SPECS[id].body.d)).toBeLessThanOrEqual(MAX_WIDTH)
   })
 })

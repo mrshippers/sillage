@@ -1,5 +1,6 @@
 import { useState, type CSSProperties } from 'react'
 import type { Bottle } from './bottles'
+import Account from './Account'
 import { deriveNose } from './families'
 import { glassTint, setGlassTint } from './glass'
 import { OWN_KEY, WEARS_KEY, mostWorn, parseOwnBottle, todayLocal, type OwnBottle } from './wardrobeState'
@@ -160,6 +161,7 @@ export default function You({
           }}
         />
       </div>
+      <Account />
     </>
   )
 }

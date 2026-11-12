@@ -1,10 +1,10 @@
 import type { CSSProperties } from 'react'
-import type { Ownership } from '../domain/types'
 import { axisValues, fromProfile, type Bottle } from './bottles'
 import { chemistryOf, FRAGRANCES } from './data'
 import HoloCard from './HoloCard'
 import { Strip, Trail } from './Strip'
-import { STATUS_LABEL } from './wardrobeState'
+import { PERSONAL } from '../cloud/cloud'
+import { STATUS_LABEL, type Status } from './wardrobeState'
 
 const WHEN = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short' })
 
@@ -27,8 +27,8 @@ export default function ScentPage({
 }: {
   bottle: Bottle
   back: () => void
-  status: Ownership
-  setStatus: (s: Ownership) => void
+  status: Status
+  setStatus: (s: Status) => void
   score: number | null
   rate: (s: number | null) => void
   wornToday: boolean
@@ -64,7 +64,7 @@ export default function ScentPage({
       <h2 className="h2">Yours</h2>
       <div className="seg" role="group" aria-label="Where this bottle lives">
         {(['owned', 'finished', 'wishlist'] as const).map(s => (
-          <button key={s} type="button" aria-pressed={status === s} onClick={() => setStatus(s)}>
+          <button key={s} type="button" aria-pressed={status === s} onClick={() => setStatus(status === s && !PERSONAL ? 'none' : s)}>
             {s === 'owned' ? 'Shelf' : STATUS_LABEL[s]}
           </button>
         ))}
