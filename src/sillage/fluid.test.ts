@@ -34,6 +34,12 @@ describe('spring', () => {
     expect(flicked).toBeGreaterThan(slow)
   })
 
+  it('a frame stamped before the spring started does nothing (it used to fling the value away)', () => {
+    const s = { x: -0.9, v: 0 }
+    expect(stepSpring(s, 0, 0.55, 0.86, -0.004)).toEqual(s)
+    expect(stepSpring(s, 0, 0.55, 0.86, 0)).toEqual(s)
+  })
+
   it('re-targeting mid-flight starts from the live value, with no jump', () => {
     let s = run({ x: 0, v: 0 }, 100, 0.4, 1, 0.15).s
     const before = s.x

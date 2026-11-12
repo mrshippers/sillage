@@ -121,6 +121,13 @@ export default function SillageApp() {
   }, [opened])
   // the tab bar is glass: this reads what is passing under it and bends the rim
   useEffect(() => mountGlass(), [])
+  // fetch the cabinet's code while nothing is happening, so the Shelf never waits on it
+  useEffect(() => {
+    const go = () => void import('./Cabinet')
+    const w = window as Window & { requestIdleCallback?: (cb: () => void) => number }
+    if (w.requestIdleCallback) w.requestIdleCallback(go)
+    else setTimeout(go, 2000)
+  }, [])
 
   return (
     <div ref={appEl} className="app" data-splash={splash === 'on' ? 'on' : undefined} style={{ ...cssVars(), ...(haze ? { '--haze': haze } : null) } as CSSProperties}>
@@ -174,7 +181,7 @@ export default function SillageApp() {
         </div>
       </main>
 
-      <nav className="tabs glass" data-rim="t" aria-label="Sillage">
+      <nav className="tabs glass" aria-label="Sillage">
         <ul style={{ '--i': TABS.findIndex(t => t.id === tab) } as CSSProperties} data-away={opened ? '' : undefined}>
           <li className="tab-ink" ref={inkEl} aria-hidden />
           {TABS.map(t => (

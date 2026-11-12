@@ -14,6 +14,8 @@ export type SpringState = { x: number; v: number }
 
 /** One integration step, sub-stepped so a long frame cannot blow it up. */
 export function stepSpring(s: SpringState, target: number, response: number, damping: number, dt: number): SpringState {
+  // a frame stamped before the spring started gives a negative step; run backwards a spring is anti-damped and flies off
+  if (!(dt > 0)) return s
   const w = (2 * Math.PI) / response // natural frequency; stiffness = w², drag = 2·damping·w (unit mass)
   const k = w * w
   const c = 2 * damping * w
@@ -63,7 +65,7 @@ export function createSpring(
 
   const frame = (now: number) => {
     const dt = Math.min((now - last) / 1000, 1 / 30)
-    last = now
+    last = Math.max(last, now)
     s = stepSpring(s, target, response, damping, dt)
     if (Math.abs(s.x - target) < rest && Math.abs(s.v) < rest * 8) {
       s = { x: target, v: 0 }

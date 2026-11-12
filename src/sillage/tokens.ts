@@ -18,7 +18,7 @@ export const color = {
   paper: '#ece6da',
   paperShade: '#d9d1c3',
   pencil: '#3a3330',
-  pencilSoft: '#6f6660',
+  pencilSoft: '#5f5853', // 4.61:1 on the paper's shade (was #6f6660 at 3.70:1),
 
   // ink on the ground
   ink: '#fbf8f3',

@@ -1,12 +1,23 @@
-import { useMemo, useState, type CSSProperties } from 'react'
+import { lazy, Suspense, useMemo, useState, type CSSProperties } from 'react'
 import type { Ownership } from '../domain/types'
 import type { Bottle } from './bottles'
 import { FAMILIES } from './families'
 import { Chroma, Strip } from './Strip'
-import Wheel from './Wheel'
 import { STATUS_LABEL } from './wardrobeState'
 
 type Sort = 'yours' | 'worn' | 'name'
+
+const Cabinet = lazy(() => import('./Cabinet'))
+
+function FamilyIcon({ d }: { d: string[] }) {
+  return (
+    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      {d.map((p, i) => (
+        <path key={i} d={p} />
+      ))}
+    </svg>
+  )
+}
 
 /* The rack: every bottle as a strip, your score beside it. */
 export default function Shelf({
@@ -59,7 +70,21 @@ export default function Shelf({
         {counts.wishlist ? `, ${counts.wishlist} wanted` : ''}.
       </p>
 
-      <Wheel counts={familyCounts} total={inStatus.length} sel={family} setSel={setFamily} />
+      <Suspense fallback={<div className="cabinet cabinet--waiting" aria-hidden />}>
+        <Cabinet bottles={list} open={open} />
+      </Suspense>
+
+      <div className="chips fam" role="group" aria-label="Family">
+        <button type="button" className="chip" aria-pressed={family === null} onClick={() => setFamily(null)}>
+          Every family <span className="chip-n">{inStatus.length}</span>
+        </button>
+        {FAMILIES.map((f, i) => (
+          <button key={f.key} type="button" className="chip" aria-pressed={family === i} data-empty={familyCounts[i] ? undefined : ''} style={{ '--c': f.color } as CSSProperties} onClick={() => setFamily(family === i ? null : i)}>
+            <FamilyIcon d={f.icon} />
+            {f.name} <span className="chip-n">{familyCounts[i]}</span>
+          </button>
+        ))}
+      </div>
 
       <label className="label" htmlFor="shelf-q">
         Find a bottle or a note
