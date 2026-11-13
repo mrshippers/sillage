@@ -143,6 +143,13 @@ export default function SillageApp() {
       <div className="grain" aria-hidden />
       <main className="col">
         <div className="top">
+          {opened ? (
+            <button type="button" className="top-back lq" onClick={back} aria-label="Back">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                <path d="M15 5l-7 7 7 7" />
+              </svg>
+            </button>
+          ) : null}
           <span className="wordmark">SILLAGE</span>
         </div>
 
@@ -150,7 +157,6 @@ export default function SillageApp() {
         {opened ? (
           <ScentPage
             bottle={opened}
-            back={back}
             status={statusOf(opened.id)}
             setStatus={s => setStatus(opened.id, s)}
             score={scoreOf(opened.id)}
@@ -189,7 +195,7 @@ export default function SillageApp() {
         </div>
       </main>
 
-      <nav className="tabs glass" aria-label="Sillage">
+      <nav className="tabs glass" data-away={opened ? '' : undefined} aria-label="Sillage">
         <ul style={{ '--i': TABS.findIndex(t => t.id === tab) } as CSSProperties} data-away={opened ? '' : undefined}>
           <li className="tab-ink" ref={inkEl} aria-hidden />
           {TABS.map(t => (

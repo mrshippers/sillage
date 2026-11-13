@@ -1,6 +1,7 @@
 import type { CSSProperties } from 'react'
 import { axisValues, fromProfile, type Bottle } from './bottles'
 import { chemistryOf, FRAGRANCES } from './data'
+import BottleHero from './BottleHero'
 import HoloCard from './HoloCard'
 import { Strip, Trail } from './Strip'
 import { PERSONAL } from '../cloud/cloud'
@@ -11,7 +12,6 @@ const WHEN = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short' }
 /* One bottle, opened. Everything here is from its profile or from you. */
 export default function ScentPage({
   bottle,
-  back,
   status,
   setStatus,
   score,
@@ -26,7 +26,6 @@ export default function ScentPage({
   removeOwn,
 }: {
   bottle: Bottle
-  back: () => void
   status: Status
   setStatus: (s: Status) => void
   score: number | null
@@ -52,13 +51,8 @@ export default function ScentPage({
 
   return (
     <>
-      <button type="button" className="back" onClick={back}>
-        ← Back
-      </button>
-      <div style={{ marginTop: 10 }}>
-        <Strip bottle={bottle} size="hero" />
-        <Trail bottle={bottle} />
-      </div>
+      <BottleHero bottle={bottle} />
+      <Trail bottle={bottle} />
       {p ? <p className="prose">{p.description}</p> : null}
 
       <h2 className="h2">Yours</h2>
@@ -70,13 +64,42 @@ export default function ScentPage({
         ))}
       </div>
 
-      <p className="label">Your score {score !== null ? <span style={{ color: 'var(--gold)' }}>{score} of 10</span> : null}</p>
-      <div className="rate" role="group" aria-label="Your score out of 10">
-        {Array.from({ length: 11 }, (_, n) => (
-          <button key={n} type="button" aria-pressed={score === n} onClick={() => rate(score === n ? null : n)} aria-label={`${n} out of 10`}>
-            {n}
-          </button>
-        ))}
+      <p className="label">
+        Your score{' '}
+        {score !== null ? (
+          <>
+            <span style={{ color: 'var(--gold)' }}>{score} of 10</span>{' '}
+            <button type="button" className="text-btn" onClick={() => rate(null)}>
+              Clear
+            </button>
+          </>
+        ) : (
+          <span>not scored yet, slide to score</span>
+        )}
+      </p>
+      <div className="gauge" data-unset={score === null ? '' : undefined}>
+        <input
+          className="gauge-input"
+          type="range"
+          min={0}
+          max={10}
+          step={1}
+          defaultValue={score ?? 5}
+          key={score ?? 'unset'}
+          aria-label="Your score out of 10"
+          aria-valuetext={score === null ? 'Not scored' : `${score} out of 10`}
+          style={{ '--fill': `${(score ?? 0) * 10}%` } as CSSProperties}
+          onPointerUp={e => rate(Number(e.currentTarget.value))}
+          onKeyUp={e => rate(Number(e.currentTarget.value))}
+          onInput={e => e.currentTarget.style.setProperty('--fill', `${Number(e.currentTarget.value) * 10}%`)}
+        />
+        <div className="gauge-ticks" aria-hidden>
+          {Array.from({ length: 11 }, (_, n) => (
+            <span key={n} data-on={score === n ? '' : undefined}>
+              {n}
+            </span>
+          ))}
+        </div>
       </div>
 
       <div className="actions">
