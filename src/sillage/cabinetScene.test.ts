@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { MAX_WIDTH, seedOf } from './bottleModel'
+import { REAL_BOTTLES } from './realBottles'
 import { frontIndex, ringRadius } from './cabinetScene'
 
 describe('the cabinet', () => {
@@ -32,6 +33,7 @@ describe('the real bottles', () => {
     const { BOTTLE_SPECS } = await import('./bottleSpecs')
     const { MAX_WIDTH } = await import('./bottleModel')
     const ids = Object.keys(BOTTLE_SPECS)
+    expect(new Set(ids)).toEqual(REAL_BOTTLES) // the shell's list of real bottles matches the specs
     expect(ids.length).toBe(14) // every curated bottle except the custom oud blend
     const forms = new Set(ids.map(id => JSON.stringify({ b: BOTTLE_SPECS[id].body, c: BOTTLE_SPECS[id].cap, g: BOTTLE_SPECS[id].glass.tint })))
     expect(forms.size).toBeGreaterThanOrEqual(11) // Hwyl/Aurner and the two Dior LCPs truly share a bottle

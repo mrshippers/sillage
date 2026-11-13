@@ -74,7 +74,7 @@ export default function ScentPage({
             </button>
           </>
         ) : (
-          <span>not scored yet, slide to score</span>
+          <span style={{ color: 'var(--graphite)' }}>· slide to score</span>
         )}
       </p>
       <div className="gauge" data-unset={score === null ? '' : undefined}>

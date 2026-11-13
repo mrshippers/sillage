@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, 
 import './atelier.css'
 import { allBottles, fromProfile } from './bottles'
 import { scentOfDay } from './families'
+import { REAL_BOTTLES } from './realBottles'
 import { createSpring, type Spring } from './fluid'
 import { mountGlass } from './glass'
 import Lab from './Lab'
@@ -126,7 +127,10 @@ export default function SillageApp() {
   const skipWelcome = useCallback(() => setSplash(s => (s === 'on' ? 'out' : s)), [])
   // the welcome is shot on tonight's bottle; an empty shelf gets the house's own flacon
   const welcomeBottle = useMemo(() => {
-    const profiled = shelf.filter(b => b.profile).map(b => b.profile!)
+    // a bottle with a real design leads the advert; a custom one falls back only if it is all there is
+    const all = shelf.filter(b => b.profile).map(b => b.profile!)
+    const real = all.filter(p => REAL_BOTTLES.has(String(p.id)))
+    const profiled = real.length ? real : all
     const b = profiled.length ? fromProfile(scentOfDay(new Date(), profiled)) : null
     return b ? { id: b.id, house: b.house, name: b.short, stain: b.stain, notes: b.notes } : { id: 'sillage', house: 'Sillage', name: 'Sillage', stain: '#caa25f' }
     // the shot is chosen once, when the app opens
