@@ -21,6 +21,14 @@ import You from './You'
  * ground; the shell is five tabs and one opened bottle at a time. */
 
 type Tab = 'tonight' | 'shelf' | 'lab' | 'notes' | 'you'
+const ICON: Record<Tab, string> = {
+  tonight: 'M19 14.5A7.5 7.5 0 0 1 9.5 5a7.5 7.5 0 1 0 9.5 9.5Z',
+  shelf: 'M10 3.5h4M10.5 3.5v3M13.5 3.5v3M8 6.5h8a1.5 1.5 0 0 1 1.5 1.5v11a1.5 1.5 0 0 1-1.5 1.5H8A1.5 1.5 0 0 1 6.5 19V8A1.5 1.5 0 0 1 8 6.5ZM6.5 12h11',
+  lab: 'M9.5 3.5h5M10 3.5v5.5L5.2 18a1.6 1.6 0 0 0 1.4 2.5h10.8a1.6 1.6 0 0 0 1.4-2.5L14 9V3.5M7.5 14.5h9',
+  notes: 'M9 9.5m-4.5 0a4.5 4.5 0 1 0 9 0a4.5 4.5 0 1 0-9 0M16.5 15.5m-3 0a3 3 0 1 0 6 0a3 3 0 1 0-6 0M7.5 18m-2 0a2 2 0 1 0 4 0a2 2 0 1 0-4 0',
+  you: 'M12 8.5m-3.5 0a3.5 3.5 0 1 0 7 0a3.5 3.5 0 1 0-7 0M5 20c.8-3.6 3.6-5.5 7-5.5s6.2 1.9 7 5.5',
+}
+
 const TABS: { id: Tab; label: string }[] = [
   { id: 'tonight', label: 'Tonight' },
   { id: 'shelf', label: 'Shelf' },
@@ -201,7 +209,10 @@ export default function SillageApp() {
           {TABS.map(t => (
             <li key={t.id}>
               <button type="button" aria-current={!opened && tab === t.id ? 'page' : undefined} onPointerDown={ripple} onClick={() => go(t.id)}>
-                {t.label}
+                <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                  <path d={ICON[t.id]} />
+                </svg>
+                <span>{t.label}</span>
               </button>
             </li>
           ))}

@@ -546,3 +546,18 @@
 .bh-name { font-family: var(--serif); font-weight: 500; font-size: 40px; line-height: 1.02; letter-spacing: -0.02em; }
 .bh-family { font-size: 13px; color: var(--graphite); }
 .page--scent .bottle-hero { view-transition-name: bottle; }
+
+/* tab: icon over label, the iOS order */
+.tabs button { display: grid; justify-items: center; align-content: center; gap: 2px; font-size: 11px; letter-spacing: 0.01em; }
+.tabs button svg { display: block; }
+
+/* chosen chip: gold word over a short gold hairline that draws out from the centre.
+   No halo, no box, no capsule. */
+.chip::before { content: none; }
+.chip::after {
+  content: ''; position: absolute; left: 14px; right: 14px; bottom: 8px; height: 1.5px; border-radius: 1px;
+  background: var(--gold); transform: scaleX(0); transition: transform 220ms var(--ease-out);
+}
+.chip[aria-pressed='true']::after { transform: scaleX(1); }
+/* a row that scrolls sideways says so: its far edge fades */
+.chips { -webkit-mask: linear-gradient(90deg, #000 88%, transparent); mask: linear-gradient(90deg, #000 88%, transparent); }

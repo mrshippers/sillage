@@ -136,7 +136,7 @@ export default function NotesField({ index, pick }: { index: { note: string; ids
           }}
         >
           <span className="nf-name">{n.note}</span>
-          {n.ids.length > 1 ? <span className="nf-count">{n.ids.length}</span> : null}
+          <span className="nf-count">{n.ids.length}</span>
         </button>
       ))}
     </div>

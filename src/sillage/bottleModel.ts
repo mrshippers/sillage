@@ -284,6 +284,7 @@ export function buildBottle(b: LabelSource, spec: BottleSpec, m: Materials, opts
     const juiceMat = new THREE.MeshPhysicalMaterial({
       color: jc, roughness: 0.04, metalness: 0, transmission: 1, thickness: 0.7, ior: 1.36,
       attenuationColor: jc, attenuationDistance: 0.95, envMapIntensity: 1.2, specularIntensity: 0.8,
+      emissive: jc, emissiveIntensity: 0.22, // the backlight a studio shot gives the juice, so pale juice still reads as its colour
     })
     owned.push(juiceMat)
     const wall = Math.min(0.02, S.w * 0.045) // thick glass, but the liquid sits close to it
@@ -308,13 +309,14 @@ export function buildBottle(b: LabelSource, spec: BottleSpec, m: Materials, opts
     const tex = labelTexture(b, spec.label, (S.h * spec.label.h) / (S.w * spec.label.w))
     const printed = spec.label.kind === 'print-white' || spec.label.kind === 'print-black'
     // printed straight on the glass: only the type shows (alpha-tested, so no box behind it)
-    const mat = new THREE.MeshStandardMaterial({ map: tex, roughness: spec.label.kind === 'plate' ? 0.3 : 0.7, metalness: spec.label.kind === 'plate' ? 0.8 : 0, alphaTest: printed ? 0.35 : 0 })
+    const mat = new THREE.MeshStandardMaterial({ map: tex, roughness: spec.label.kind === 'plate' ? 0.3 : 0.7, metalness: spec.label.kind === 'plate' ? 0.8 : 0, alphaTest: printed ? 0.35 : 0, transparent: true, depthWrite: true })
     owned.push(tex, mat)
     const lw = S.w * spec.label.w
     const lh = S.h * spec.label.h
     const label = new THREE.Mesh(geo(S.form === 'cylinder' ? new THREE.CylinderGeometry(S.w / 2 + 0.002, S.w / 2 + 0.002, lh, 64, 1, true, -lw / S.w, (2 * lw) / S.w) : new THREE.PlaneGeometry(lw, lh)), mat)
     label.position.set(0, S.h * spec.label.y, S.form === 'cylinder' ? 0 : S.d / 2 + 0.003)
     if (S.form === 'cylinder') label.rotation.y = 0
+    label.renderOrder = 1
     group.add(label)
   }
   if (opts.capless) {

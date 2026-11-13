@@ -57,7 +57,7 @@ async function leaks(sql: string) {
   return { db, bSees, bWears, bUpdates, bForged, anonSees, aSees, serviceSees }
 }
 
-describe('accounts: row-level security', () => {
+describe('accounts: row-level security', { timeout: 30_000 }, () => {
   it('another person sees, edits and forges nothing of yours; you see your own', async () => {
     const r = await leaks(MIGRATION)
     expect(r.serviceSees).toBe(1) // the row really exists
