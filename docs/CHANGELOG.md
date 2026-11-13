@@ -4,6 +4,21 @@ Newest first. All dates from git commit metadata.
 
 ---
 
+## 2026-11-05
+
+### The tab bar is glass
+
+The bar at the foot of the screen is glass now, so a strip shows through as it passes under: its shape, its stain, bent a little at the rim where the slab is thick. Smoked rather than clear: paper under light labels has to dim. Not the frosted sheen that was retired in September. Nothing glows; the only thing the glass adds is what is already behind it.
+
+- It reads what is under it and smokes over when paper slides beneath, so the five labels hold at 4.5:1 or better at every scroll stop measured (worst 5.24:1). Over the bare plum ground it thins back out.
+- The rim bends the backdrop and parts red from blue in Chromium. Safari and Firefox get the same glass without the bend.
+- **You** has one new setting, "The glass", clear to smoked, kept on the device.
+- Asked for reduced transparency, or in a forced-colours mode, the bar is solid.
+- No layout moved: 1,662 nodes across 12 screens fingerprinted against main, none changed.
+- The numbers, and the lines of the glass spec that were broken and why, are in `docs/superpowers/plans/2026-11-05-liquid-glass.md`. `node scripts/verify-glass.mjs` reruns them.
+
+---
+
 ## 2026-09-29
 
 ### Atelier: the redesign, and the rest of the app

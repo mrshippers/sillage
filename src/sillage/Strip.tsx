@@ -1,5 +1,6 @@
 import type { CSSProperties, ReactNode } from 'react'
 import { axisValues, type Bottle } from './bottles'
+import { useTilt } from './useTilt'
 
 /* The smelling strip. Paper, the name pencilled on it, the juice's stain at
  * the dipped tip. A bottle with no authored colour is plain paper. */
@@ -16,6 +17,7 @@ export function Strip({
 }) {
   const style = bottle.stain ? ({ '--stain': bottle.stain } as CSSProperties) : undefined
   const cls = `strip strip--${size}${bottle.stain ? '' : ' strip--blank'}`
+  const ref = useTilt<HTMLElement>(size === 'hero')
   const inner = (
     <span className="strip-in">
       <span className="strip-house">{bottle.house}</span>
@@ -27,11 +29,11 @@ export function Strip({
     </span>
   )
   return onClick ? (
-    <button type="button" className={cls} style={style} onClick={onClick} aria-label={`Open ${bottle.name}`}>
+    <button type="button" className={cls} style={style} data-bottle={bottle.id} onClick={onClick} aria-label={`Open ${bottle.name}`} ref={ref as React.RefObject<HTMLButtonElement>}>
       {inner}
     </button>
   ) : (
-    <div className={cls} style={style}>
+    <div className={cls} style={style} data-bottle={bottle.id} ref={ref as React.RefObject<HTMLDivElement>}>
       {inner}
     </div>
   )
@@ -57,7 +59,7 @@ export function Trail({ bottle }: { bottle: Bottle }) {
             <stop offset="1" stopColor="var(--gold)" stopOpacity="0" />
           </linearGradient>
         </defs>
-        <path d={d} fill={`url(#t-${bottle.id})`} />
+        <path className="trail-wake" d={d} fill={`url(#t-${bottle.id})`} />
         <line x1="0" x2={W} y1={cy} y2={cy} stroke="var(--rule)" strokeWidth="1" />
       </svg>
       <figcaption className="trail-cap">
@@ -74,8 +76,8 @@ export function Chroma({ bottle }: { bottle: Bottle }) {
   if (!axes.length) return null
   return (
     <span className="chroma" aria-hidden>
-      {axes.map(a => (
-        <i key={a.key} style={{ opacity: 0.08 + (a.value / 10) * 0.92 }} />
+      {axes.map((a, k) => (
+        <i key={a.key} style={{ opacity: 0.08 + (a.value / 10) * 0.92, '--k': k } as CSSProperties} />
       ))}
     </span>
   )

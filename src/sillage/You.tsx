@@ -1,6 +1,8 @@
-import { useState } from 'react'
+import { useState, type CSSProperties } from 'react'
 import type { Bottle } from './bottles'
+import Account from './Account'
 import { deriveNose } from './families'
+import { glassTint, setGlassTint } from './glass'
 import { OWN_KEY, WEARS_KEY, mostWorn, parseOwnBottle, todayLocal, type OwnBottle } from './wardrobeState'
 
 /* You: your nose, read off what is on the shelf and what you actually wear;
@@ -23,6 +25,7 @@ export default function You({
   const byId = new Map(all.map(b => [b.id, b]))
   const [form, setForm] = useState({ name: '', house: '', notes: '' })
   const [msg, setMsg] = useState<string | null>(null)
+  const [tint, setTint] = useState(glassTint)
 
   const exportData = () => {
     const dump: Record<string, unknown> = {}
@@ -133,6 +136,32 @@ export default function You({
           Download my data
         </button>
       </div>
+
+      <div data-glass-setting>
+        <hr className="sep" />
+        <h2 className="h2" style={{ marginTop: 0 }}>The glass</h2>
+        <p className="para">
+          The bar at the foot of the screen is glass, so a strip shows through as it passes under. Thin it until only the rim is left, or smoke
+          it over. It darkens by itself when paper slides beneath, and the setting stays on this device.
+        </p>
+        <label className="label" htmlFor="glass-tint">Clear to smoked</label>
+        <input
+          id="glass-tint"
+          className="range"
+          type="range"
+          min={0}
+          max={1.5}
+          step={0.05}
+          value={tint}
+          style={{ '--fill': `${(tint / 1.5) * 100}%` } as CSSProperties}
+          onChange={e => {
+            const v = Number(e.target.value)
+            setTint(v)
+            setGlassTint(v)
+          }}
+        />
+      </div>
+      <Account />
     </>
   )
 }

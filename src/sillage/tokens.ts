@@ -18,7 +18,7 @@ export const color = {
   paper: '#ece6da',
   paperShade: '#d9d1c3',
   pencil: '#3a3330',
-  pencilSoft: '#6f6660',
+  pencilSoft: '#5f5853', // 4.61:1 on the paper's shade (was #6f6660 at 3.70:1),
 
   // ink on the ground
   ink: '#fbf8f3',
@@ -32,13 +32,19 @@ export const color = {
   goldDeep: '#9a7a45',
   plum: '#8b5c8f',
 
-  // iridescent flecks: the logo mark's spritz only (logo-v4), never UI
+  // glass: the tab bar, which has the strips passing under it. The tint is the
+  // raised ground, so the glass is a smoked flacon and not a grey pane; the ink
+  // is the one ink, drawn at two fixed strengths (see "glass" in atelier.css).
+  glassTint: '#1a121d',
+  glassInk: '#fbf8f3',
+
+  // iridescent: the logo mark's spritz (logo-v4) and the foil on the holographic card, nowhere else
   iris: ['#ff9bc4', '#8fd0c4', '#b89bff'] as const,
 } as const
 
 export const font = {
-  display: "'Fraunces', Georgia, serif",
-  body: "'Archivo', 'Helvetica Neue', system-ui, sans-serif",
+  display: "'Bodoni Moda Variable', 'Bodoni 72', Didot, Georgia, serif",
+  body: "'Jost Variable', 'Futura', 'Avenir Next', system-ui, sans-serif",
 } as const
 
 export function cssVars(): Record<string, string> {
@@ -54,7 +60,20 @@ export function cssVars(): Record<string, string> {
     '--graphite': color.graphite,
     '--gold': color.gold,
     '--gold-light': color.goldLight,
+    '--glass-tint': color.glassTint,
+    '--glass-ink': color.glassInk,
+    '--plum': color.plum,
+    '--iris-1': color.iris[0],
+    '--iris-2': color.iris[1],
+    '--iris-3': color.iris[2],
     '--serif': font.display,
     '--sans': font.body,
   }
+}
+
+export function hexToRgb(hex: string | null | undefined): [number, number, number] | null {
+  const m = /^#?([0-9a-f]{6})$/i.exec((hex ?? '').trim())
+  if (!m) return null
+  const n = parseInt(m[1], 16)
+  return [(n >> 16) & 255, (n >> 8) & 255, n & 255]
 }

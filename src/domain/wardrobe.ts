@@ -11,6 +11,8 @@ export interface Wardrobe {
   remove(scentId: string): void
   rate(scentId: string, score: number): void
   subscribe(fn: Listener): () => void
+  /** re-read storage (an account sync rewrote it) and tell listeners */
+  reload(): void
 }
 
 export function createWardrobe(
@@ -47,5 +49,6 @@ export function createWardrobe(
       upsert(id, { score: clamp(score, 0, 10) })
     },
     subscribe(fn) { listeners.add(fn); return () => listeners.delete(fn) },
+    reload() { entries = load(); listeners.forEach(fn => fn()) },
   }
 }

@@ -1,4 +1,5 @@
 import { noteIndex, type Bottle } from './bottles'
+import NotesField from './NotesField'
 import { Strip } from './Strip'
 
 /* Notes: everything your bottles are made of, most carried first. Tap one to
@@ -33,9 +34,11 @@ export default function Notes({ bottles, note, setNote, open }: { bottles: Bottl
     <>
       <h1 className="h1">Notes</h1>
       <p className="lede">
-        {index.length} notes across {bottles.length} bottles. The ones you keep coming back to are at the top.
+        {index.length} notes across {bottles.length} bottles. The bigger a note, the more of your bottles carry it.
       </p>
-      <ul className="ledger" style={{ marginTop: 18 }}>
+      <NotesField index={index} pick={setNote} />
+      <h2 className="h2">Every note</h2>
+      <ul className="ledger">
         {index.map(n => (
           <li key={n.note}>
             <button type="button" className="note note-link" onClick={() => setNote(n.note)}>

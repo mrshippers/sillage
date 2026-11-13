@@ -1,15 +1,17 @@
-import type { Ownership } from '../domain/types'
+import type { CSSProperties } from 'react'
 import { axisValues, fromProfile, type Bottle } from './bottles'
 import { chemistryOf, FRAGRANCES } from './data'
+import BottleHero from './BottleHero'
+import HoloCard from './HoloCard'
 import { Strip, Trail } from './Strip'
-import { STATUS_LABEL } from './wardrobeState'
+import { PERSONAL } from '../cloud/cloud'
+import { STATUS_LABEL, type Status } from './wardrobeState'
 
 const WHEN = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short' })
 
 /* One bottle, opened. Everything here is from its profile or from you. */
 export default function ScentPage({
   bottle,
-  back,
   status,
   setStatus,
   score,
@@ -24,9 +26,8 @@ export default function ScentPage({
   removeOwn,
 }: {
   bottle: Bottle
-  back: () => void
-  status: Ownership
-  setStatus: (s: Ownership) => void
+  status: Status
+  setStatus: (s: Status) => void
   score: number | null
   rate: (s: number | null) => void
   wornToday: boolean
@@ -50,31 +51,55 @@ export default function ScentPage({
 
   return (
     <>
-      <button type="button" className="back" onClick={back}>
-        ← Back
-      </button>
-      <div style={{ marginTop: 10 }}>
-        <Strip bottle={bottle} size="hero" />
-        <Trail bottle={bottle} />
-      </div>
+      <BottleHero bottle={bottle} />
+      <Trail bottle={bottle} />
       {p ? <p className="prose">{p.description}</p> : null}
 
       <h2 className="h2">Yours</h2>
       <div className="seg" role="group" aria-label="Where this bottle lives">
         {(['owned', 'finished', 'wishlist'] as const).map(s => (
-          <button key={s} type="button" aria-pressed={status === s} onClick={() => setStatus(s)}>
+          <button key={s} type="button" aria-pressed={status === s} onClick={() => setStatus(status === s && !PERSONAL ? 'none' : s)}>
             {s === 'owned' ? 'Shelf' : STATUS_LABEL[s]}
           </button>
         ))}
       </div>
 
-      <p className="label">Your score {score !== null ? <span style={{ color: 'var(--gold)' }}>{score} of 10</span> : null}</p>
-      <div className="rate" role="group" aria-label="Your score out of 10">
-        {Array.from({ length: 11 }, (_, n) => (
-          <button key={n} type="button" aria-pressed={score === n} onClick={() => rate(score === n ? null : n)} aria-label={`${n} out of 10`}>
-            {n}
-          </button>
-        ))}
+      <p className="label">
+        Your score{' '}
+        {score !== null ? (
+          <>
+            <span style={{ color: 'var(--gold)' }}>{score} of 10</span>{' '}
+            <button type="button" className="text-btn" onClick={() => rate(null)}>
+              Clear
+            </button>
+          </>
+        ) : (
+          <span style={{ color: 'var(--graphite)' }}>· slide to score</span>
+        )}
+      </p>
+      <div className="gauge" data-unset={score === null ? '' : undefined}>
+        <input
+          className="gauge-input"
+          type="range"
+          min={0}
+          max={10}
+          step={1}
+          defaultValue={score ?? 5}
+          key={score ?? 'unset'}
+          aria-label="Your score out of 10"
+          aria-valuetext={score === null ? 'Not scored' : `${score} out of 10`}
+          style={{ '--fill': `${(score ?? 0) * 10}%` } as CSSProperties}
+          onPointerUp={e => rate(Number(e.currentTarget.value))}
+          onKeyUp={e => rate(Number(e.currentTarget.value))}
+          onInput={e => e.currentTarget.style.setProperty('--fill', `${Number(e.currentTarget.value) * 10}%`)}
+        />
+        <div className="gauge-ticks" aria-hidden>
+          {Array.from({ length: 11 }, (_, n) => (
+            <span key={n} data-on={score === n ? '' : undefined}>
+              {n}
+            </span>
+          ))}
+        </div>
       </div>
 
       <div className="actions">
@@ -87,20 +112,14 @@ export default function ScentPage({
       </p>
 
       <h2 className="h2">In the bottle</h2>
-      <div className="notes">
-        {bottle.notes.map(n => (
-          <button key={n} type="button" className="note note-link" onClick={() => openNote(n)}>
-            {n}
-          </button>
-        ))}
-      </div>
+      <HoloCard bottle={bottle} openNote={openNote} />
 
       {p ? (
         <>
           <h2 className="h2">Its profile</h2>
           <ul className="bars">
-            {axes.map(a => (
-              <li key={a.key}>
+            {axes.map((a, k) => (
+              <li key={a.key} style={{ '--k': k } as CSSProperties}>
                 <span>{a.label}</span>
                 <span className="bar" aria-hidden>
                   <i style={{ width: `${a.value * 10}%` }} />

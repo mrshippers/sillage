@@ -2,11 +2,14 @@
    Values come from tokens.ts through custom properties set on .app. */
 
 .app {
+  overflow-x: clip; /* nothing may widen the page: a wide page drags the fixed bar off the screen */
+  touch-action: pan-y pinch-zoom;
   min-height: 100dvh;
   background: var(--ground);
   color: var(--ink);
   font-family: var(--sans);
-  font-size: 15px;
+  font-size: 15.5px;
+  letter-spacing: 0.005em;
   line-height: 1.55;
   -webkit-font-smoothing: antialiased;
 }
@@ -23,14 +26,16 @@
 }
 
 /* ── top line ───────────────────────────────────────────────── */
-.top { display: flex; align-items: baseline; justify-content: space-between; padding-top: 6px; }
-.wordmark { font-family: var(--serif); font-size: 13px; letter-spacing: 0.34em; color: var(--gold); }
+.top { display: flex; align-items: center; gap: 14px; min-height: 40px; padding-top: 6px; }
+.top-back { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; color: var(--ink); transition: transform 160ms var(--ease-out); }
+.top-back:active { transform: scale(0.94); }
+.wordmark { font-family: var(--serif); font-weight: 500; font-size: 13px; letter-spacing: 0.42em; color: var(--gold); }
 .when { font-size: 13px; color: var(--graphite); }
 
 /* ── headings: sentence case, no eyebrow chrome ─────────────── */
-.h1 { font-family: var(--serif); font-weight: 400; font-size: 34px; line-height: 1.08; letter-spacing: -0.01em; margin: 28px 0 6px; font-variation-settings: 'opsz' 96; }
+.h1 { font-family: var(--serif); font-weight: 400; font-size: 40px; line-height: 1.02; letter-spacing: -0.022em; margin: 28px 0 6px; font-optical-sizing: auto; }
 .lede { color: var(--graphite); margin: 0; font-size: 15px; }
-.h2 { font-family: var(--serif); font-weight: 400; font-size: 21px; margin: 36px 0 12px; }
+.h2 { font-family: var(--serif); font-weight: 500; font-size: 23px; letter-spacing: -0.01em; margin: 38px 0 12px; }
 .sep { border: 0; border-top: 1px solid var(--rule); margin: 28px 0; }
 .muted { color: var(--graphite); }
 .small { font-size: 13px; }
@@ -45,19 +50,28 @@
   text-align: left;
   color: var(--pencil);
   background:
-    radial-gradient(120% 140% at 100% 50%, color-mix(in oklab, var(--stain) 88%, transparent) 0 12%, color-mix(in oklab, var(--stain) 40%, transparent) 22%, transparent 42%),
+    radial-gradient(120% 140% at calc(100% - var(--drift)) 50%, color-mix(in oklab, var(--stain) 88%, transparent) 0 calc(12% * var(--soak)), color-mix(in oklab, var(--stain) 40%, transparent) calc(22% * var(--soak)), transparent calc(42% * var(--soak))),
     linear-gradient(180deg, var(--paper), var(--paper-shade));
   clip-path: polygon(0 0, calc(100% - 26px) 0, 100% 50%, calc(100% - 26px) 100%, 0 100%);
-  transition: transform 160ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  transition: transform 160ms var(--ease-out);
+}
+/* where the browser can draw it, the blotter has soft corners and a rounded dipped tip, never a box */
+@supports (clip-path: shape(from 0 0, line to 1px 1px)) {
+  .strip {
+    clip-path: shape(from 14px 0, hline to calc(100% - 36px), curve to calc(100% - 24px) 6px with calc(100% - 29px) 0,
+      line to calc(100% - 3px) calc(50% - 7px), curve to calc(100% - 3px) calc(50% + 7px) with 100% 50%,
+      line to calc(100% - 24px) calc(100% - 6px), curve to calc(100% - 36px) 100% with calc(100% - 29px) 100%,
+      hline to 14px, curve to 0 calc(100% - 14px) with 0 100%, vline to 14px, curve to 14px 0 with 0 0, close);
+  }
 }
 .strip--blank { background: linear-gradient(180deg, var(--paper), var(--paper-shade)); }
-.strip:active { transform: translateY(1px); }
+.strip:not(.strip--hero):active { transform: scale(0.985); }
 .strip-in { display: block; padding: 18px 56px 18px 18px; }
-.strip-house { display: block; font-size: 13px; color: var(--pencil-soft); }
-.strip-name { display: block; font-family: var(--serif); color: var(--pencil); line-height: 1.02; font-variation-settings: 'opsz' 120; }
+.strip-house { display: block; font-size: 11.5px; font-weight: 500; letter-spacing: 0.18em; text-transform: uppercase; color: var(--pencil-soft); }
+.strip-name { display: block; font-family: var(--serif); color: var(--pencil); line-height: 1.02; font-optical-sizing: auto; }
 .strip--hero .strip-in { padding: 26px 64px 28px 22px; min-height: 150px; display: flex; flex-direction: column; justify-content: flex-end; }
-.strip--hero .strip-name { font-size: 44px; letter-spacing: -0.015em; }
-.strip--row .strip-name { font-size: 21px; }
+.strip--hero .strip-name { font-size: 46px; font-weight: 500; letter-spacing: -0.025em; }
+.strip--row .strip-name { font-size: 22px; font-weight: 500; letter-spacing: -0.01em; }
 .strip--row .strip-in { padding: 12px 48px 12px 14px; }
 .strip-family { display: block; margin-top: 8px; font-size: 13px; color: var(--pencil-soft); }
 
@@ -76,32 +90,67 @@
 .chroma { display: grid; grid-template-columns: repeat(11, 1fr); gap: 2px; height: 5px; margin-top: 6px; }
 .chroma i { display: block; background: var(--gold); border-radius: 1px; }
 
-/* ── controls: square-cut, hairline, gold when chosen ───────── */
-.chips { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; }
+/* ── controls: liquid glass, soft continuous corners ─────────── */
+/* Never a capsule, never a box: corners at about a third of the short side,
+   drawn as a squircle where the browser can. The material is liquid glass: a
+   blurred, saturated pane with a specular top edge, a faint rim and a lift.
+   Chosen is gold light inside the glass; a gold fill is kept for the one
+   action that matters on a view (.btn). */
+.app { --r-s: 13px; --r-m: 16px; --r-l: 24px; --r-xl: 28px; }
+@supports (corner-shape: squircle) {
+  .app { --r-s: 19px; --r-m: 23px; --r-l: 34px; --r-xl: 40px; }
+  .lq, .btn, .chip, .field, .seg, .rate button, .back, .holo, .cabinet, .cabinet-cap, .tabs, .tab-ink::before { corner-shape: squircle; }
+}
+.lq, .chip, .field, .seg, .rate button, .back, .btn-line {
+  border: 0;
+  background:
+    radial-gradient(120% 100% at 18% 0%, rgba(255, 255, 255, 0.13), transparent 55%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.075), rgba(255, 255, 255, 0.025));
+  -webkit-backdrop-filter: blur(16px) saturate(1.7);
+  backdrop-filter: blur(16px) saturate(1.7);
+  box-shadow:
+    inset 0 1px 0.5px rgba(255, 255, 255, 0.32),
+    inset 0 -1px 0.5px rgba(255, 255, 255, 0.07),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.08),
+    0 8px 22px -8px rgba(0, 0, 0, 0.6);
+}
+.chips { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding: 4px 2px 10px; margin: 0 -2px; }
 .chips::-webkit-scrollbar { display: none; }
 .wrap { flex-wrap: wrap; overflow: visible; }
 .chip {
-  flex: 0 0 auto;
-  min-height: 40px;
-  padding: 0 14px;
-  border: 1px solid var(--rule);
-  border-radius: 2px;
-  font-size: 14px;
-  color: var(--graphite);
-  white-space: nowrap;
+  flex: 0 0 auto; display: inline-flex; align-items: center; gap: 7px;
+  min-height: 40px; padding: 0 15px; border-radius: var(--r-s);
+  font-size: 14px; color: var(--graphite); white-space: nowrap;
 }
-.chip[aria-pressed='true'] { color: var(--ground); background: var(--gold); border-color: var(--gold); }
+/* chosen: gold light caught inside the glass, the label in pale gold */
+.chip[aria-pressed='true'], .rate button[aria-pressed='true'], .seg button[aria-pressed='true'] {
+  color: var(--gold-light);
+  background:
+    radial-gradient(120% 100% at 18% 0%, color-mix(in oklab, var(--gold-light) 42%, transparent), transparent 60%),
+    linear-gradient(180deg, color-mix(in oklab, var(--gold) 34%, transparent), color-mix(in oklab, var(--gold) 14%, transparent));
+  box-shadow:
+    inset 0 1px 0.5px rgba(255, 240, 210, 0.55),
+    inset 0 0 0 1px color-mix(in oklab, var(--gold) 55%, transparent),
+    0 8px 22px -8px rgba(0, 0, 0, 0.6), 0 0 18px -6px color-mix(in oklab, var(--gold) 50%, transparent);
+}
+.chip svg { color: var(--c, currentColor); flex: none; }
+.chip-n { font-size: 12px; color: var(--gold); font-variant-numeric: tabular-nums; }
+.chip[data-empty] { opacity: 0.45; }
+.fam { margin-top: 14px; }
 .btn {
   display: inline-flex; align-items: center; justify-content: center;
-  min-height: 46px; padding: 0 20px;
-  border-radius: 2px;
-  background: var(--gold); color: var(--ground) !important;
-  font-weight: 600; font-size: 15px;
+  min-height: 46px; padding: 0 22px; border-radius: var(--r-m); border: 0;
+  color: var(--ground) !important; font-weight: 600; font-size: 15px;
+  background: radial-gradient(120% 120% at 25% 0%, #f6e3b8, transparent 60%), linear-gradient(180deg, var(--gold-light), var(--gold));
+  box-shadow: inset 0 1px 0.5px rgba(255, 255, 255, 0.7), inset 0 -2px 6px rgba(120, 80, 30, 0.35), 0 10px 26px -10px color-mix(in oklab, var(--gold) 70%, #000);
 }
 .btn[disabled] { opacity: 0.4; cursor: default; }
-.btn-line { background: none; color: var(--ink) !important; border: 1px solid var(--rule); font-weight: 500; }
+.btn.btn-line { color: var(--ink) !important; font-weight: 500;
+  background: radial-gradient(120% 100% at 18% 0%, rgba(255, 255, 255, 0.13), transparent 55%), linear-gradient(180deg, rgba(255, 255, 255, 0.075), rgba(255, 255, 255, 0.025));
+  box-shadow: inset 0 1px 0.5px rgba(255, 255, 255, 0.32), inset 0 -1px 0.5px rgba(255, 255, 255, 0.07), inset 0 0 0 1px rgba(255, 255, 255, 0.08), 0 8px 22px -8px rgba(0, 0, 0, 0.6); }
+.btn-lq { min-height: 40px; padding: 0 18px; }
 .actions { display: flex; gap: 10px; margin-top: 16px; flex-wrap: wrap; }
-.field { width: 100%; min-height: 46px; padding: 0 14px; border-radius: 2px; border: 1px solid var(--rule); background: var(--ground-raised); color: var(--ink); font: inherit; }
+.field { width: 100%; min-height: 48px; padding: 0 16px; border-radius: var(--r-m); color: var(--ink); font: inherit; }
 .field::placeholder { color: var(--graphite); }
 .label { display: block; font-size: 13px; color: var(--graphite); margin: 14px 0 6px; }
 
@@ -122,44 +171,393 @@
 .note { font-family: var(--serif); font-size: 17px; color: var(--ink); }
 .note-link { text-decoration: underline; text-decoration-color: var(--rule); text-underline-offset: 5px; }
 
-.prose { color: var(--ink); font-family: var(--serif); font-size: 19px; line-height: 1.45; margin: 18px 0 0; font-style: italic; }
+.prose { color: var(--ink); font-family: var(--serif); font-size: 20px; line-height: 1.4; margin: 18px 0 0; font-style: italic; }
 .para { margin: 14px 0 0; color: var(--graphite); }
 .para b { color: var(--ink); font-weight: 500; }
 
 /* the rating: eleven stops, 0 to 10 */
-.rate { display: grid; grid-template-columns: repeat(11, 1fr); gap: 3px; }
-.rate button { min-height: 40px; border: 1px solid var(--rule); border-radius: 2px; font-size: 14px; color: var(--graphite); font-variant-numeric: tabular-nums; }
-.rate button[aria-pressed='true'] { background: var(--gold); border-color: var(--gold); color: var(--ground); }
+.rate { display: grid; grid-template-columns: repeat(11, 1fr); gap: 4px; }
+.rate button { min-height: 40px; border-radius: 11px; font-size: 14px; color: var(--graphite); font-variant-numeric: tabular-nums; }
 
-.seg { display: grid; grid-template-columns: repeat(3, 1fr); border: 1px solid var(--rule); border-radius: 2px; }
-.seg button { min-height: 44px; font-size: 14px; color: var(--graphite); }
-.seg button + button { border-left: 1px solid var(--rule); }
-.seg button[aria-pressed='true'] { color: var(--ground); background: var(--gold); }
+/* a glass track; the chosen segment is a lens of gold inside it */
+.seg { display: grid; grid-template-columns: repeat(3, 1fr); padding: 4px; gap: 4px; border-radius: var(--r-m); }
+.seg button { min-height: 40px; font-size: 14px; color: var(--graphite); border-radius: calc(var(--r-m) - 4px); }
+.seg button:not([aria-pressed='true']) { background: none; box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; }
 
-.back { min-height: 44px; color: var(--graphite); font-size: 14px; padding: 0; }
+.back { display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 0 16px 0 12px; border-radius: var(--r-s); color: var(--graphite); font-size: 14px; }
 .empty { color: var(--graphite); margin: 18px 0; }
 .result { font-family: var(--serif); font-size: 64px; line-height: 1; color: var(--gold); margin: 22px 0 4px; }
 .verdict { font-family: var(--serif); font-style: italic; font-size: 20px; margin: 4px 0 0; }
 
 /* ── the tab bar ────────────────────────────────────────────── */
+/* A floating slab of liquid glass (glass.ts lenses its rim). The chosen tab is
+   a lens of light inside it that glides on a spring and follows a swipe. */
 .tabs {
-  position: fixed; left: 0; right: 0; bottom: 0; z-index: 20;
-  background: color-mix(in oklab, var(--ground) 94%, transparent);
-  border-top: 1px solid var(--rule);
-  padding-bottom: env(safe-area-inset-bottom);
+  position: fixed; z-index: 20; left: 12px; right: 12px; bottom: calc(10px + env(safe-area-inset-bottom));
+  max-width: 436px; margin: 0 auto; border-radius: var(--r-l);
 }
-.tabs ul { list-style: none; margin: 0 auto; padding: 0; max-width: 460px; display: grid; grid-template-columns: repeat(5, 1fr); }
-.tabs button { position: relative; width: 100%; min-height: 56px; font-size: 13px; color: var(--graphite); }
-.tabs button[aria-current='page'] { color: var(--ink); }
-.tabs button[aria-current='page']::before { content: ''; position: absolute; top: -1px; left: 30%; right: 30%; height: 2px; background: var(--gold); }
+.tabs ul { list-style: none; margin: 0; padding: 6px; display: grid; grid-template-columns: repeat(5, 1fr); position: relative; }
+.tabs button { position: relative; z-index: 1; width: 100%; min-height: 50px; font-size: 13px; color: var(--graphite); overflow: hidden; border-radius: calc(var(--r-l) - 6px); transition: color 200ms ease; }
+.tabs button[aria-current='page'] { color: var(--ink); font-weight: 600; }
+.ripple { position: absolute; width: 90px; height: 90px; margin: -45px 0 0 -45px; border-radius: 50%; pointer-events: none;
+  background: radial-gradient(closest-side, color-mix(in oklab, var(--gold) 45%, transparent), transparent); animation: ripple 450ms var(--ease-out) both; }
+@keyframes ripple { from { opacity: 0.9; scale: 0.2; } to { opacity: 0; scale: 1.6; } }
+.tab-ink { position: absolute; top: 6px; bottom: 6px; left: 6px; width: calc((100% - 12px) / 5); pointer-events: none; list-style: none;
+  transform: translateX(calc(var(--i, 0) * 100%)); transition: opacity 200ms ease; will-change: transform; }
+.tab-ink::before { content: ''; position: absolute; inset: 0 2px; border-radius: calc(var(--r-l) - 6px);
+  background: radial-gradient(120% 100% at 30% 0%, rgba(255, 255, 255, 0.2), transparent 60%), linear-gradient(180deg, color-mix(in oklab, var(--gold) 26%, transparent), color-mix(in oklab, var(--gold) 8%, transparent));
+  box-shadow: inset 0 1px 0.5px rgba(255, 240, 210, 0.5), inset 0 0 0 1px color-mix(in oklab, var(--gold) 40%, transparent); }
+.tabs ul[data-away] .tab-ink { opacity: 0; }
+
+/* ── glass ──────────────────────────────────────────────────── */
+/* Clear rather than frosted: the strip's colour and shape come through, a
+   thick slab at the rim. No sheen and no glow; the only thing it adds is what is already
+   passing under it. Dark material only, because Sillage is a night ground.
+   The numbers here are the whole material. Density (0 thin, 1 dense) and
+   saturation kept are written per surface by glass.ts from what is behind
+   it; with no script a surface sits dense, which is the safe end. */
+.app {
+  --glass-ink-a: 0.94;
+  --glass-ink-2-a: 0.64;
+  --glass-a-thin: 0.16;     /* tint over the plum ground */
+  --glass-a-dense: 0.25;    /* tint when paper slides under */
+  --glass-dim-thin: 0.8;    /* brightness() dims like a multiply with black, so it never goes muddy */
+  --glass-dim-dense: 0.28;  /* the dense end is set by the contrast sweep, not by eye */
+  --glass-blur: 6px;        /* a clear pane is 2px, but at 2px the words on the page can be read under the
+                               tab labels; at 6px they are shapes and colour, at 10px they are nothing */
+  --glass-sat: 1.6;
+  --glass-split: 0.15;      /* how far red and blue part at the rim */
+  --glass-rim-hi: rgba(255, 255, 255, 0.32);
+  --glass-rim-lo: rgba(255, 255, 255, 0.18);
+  --glass-rim-line: rgba(255, 255, 255, 0.1);
+  --glass-out: rgba(0, 0, 0, 0.45);
+  --glass-drop: rgba(0, 0, 0, 0.36);
+  /* the edge, for a slab seen whole and for bars that run off the screen */
+  --glass-edge:
+    inset 1.5px 1.5px 1px -1px var(--glass-rim-hi), inset -1.5px -1.5px 1px -1px var(--glass-rim-lo),
+    inset 0 0 0 0.5px var(--glass-rim-line), 0 0 0 0.5px var(--glass-out), 0 6px 24px var(--glass-drop);
+  --glass-edge-t:
+    inset 0 1.5px 1px -1px var(--glass-rim-hi), inset 0 0.5px 0 0 var(--glass-rim-line),
+    0 -0.5px 0 0 var(--glass-out), 0 -6px 24px var(--glass-drop);
+  --glass-edge-b:
+    inset 0 -1.5px 1px -1px var(--glass-rim-lo), inset 0 -0.5px 0 0 var(--glass-rim-line),
+    0 0.5px 0 0 var(--glass-out), 0 6px 24px var(--glass-drop);
+  /* light inside the slab: from the top left, a glow under the top rim, a little shade at the foot */
+  --glass-light:
+    radial-gradient(120% 160% at 0% 0%, rgba(255, 255, 255, 0.1), transparent 55%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.05), transparent 38%),
+    linear-gradient(0deg, rgba(0, 0, 0, 0.12), transparent 34%);
+}
+
+/* registered, so a surface glides between states instead of jumping */
+@property --glass-on { syntax: '<number>'; inherits: false; initial-value: 0; }
+@property --glass-density { syntax: '<number>'; inherits: false; initial-value: 1; }
+@property --glass-keep { syntax: '<number>'; inherits: false; initial-value: 1; }
+@property --glass-scale { syntax: '<number>'; inherits: true; initial-value: 1; }
+@property --glass-a-thin { syntax: '<number>'; inherits: true; initial-value: 0.16; }
+@property --glass-a-dense { syntax: '<number>'; inherits: true; initial-value: 0.25; }
+@property --glass-dim-thin { syntax: '<number>'; inherits: true; initial-value: 0.8; }
+@property --glass-dim-dense { syntax: '<number>'; inherits: true; initial-value: 0.28; }
+@property --glass-sat { syntax: '<number>'; inherits: true; initial-value: 1.6; }
+@property --glass-ink-a { syntax: '<number>'; inherits: true; initial-value: 0.94; }
+@property --glass-ink-2-a { syntax: '<number>'; inherits: true; initial-value: 0.64; }
+@property --glass-tint { syntax: '<color>'; inherits: true; initial-value: #1a121d; }
+@property --glass-ink { syntax: '<color>'; inherits: true; initial-value: #fbf8f3; }
+:root { transition: --glass-scale 240ms cubic-bezier(0.23, 1, 0.32, 1); }
+
+/* Four declarations make a surface glass: the tint, the backdrop filter (with
+   the rim lens last, so the colour steps fold into one pass and the bend
+   stays crisp), the edge, and the ink. data-rim names the edges that carry a
+   rim on a bar that runs off the screen. */
+.glass {
+  --glass-on: 1;
+  --_tint: calc((var(--glass-a-thin) + (var(--glass-a-dense) - var(--glass-a-thin)) * var(--glass-density, 1)) * var(--glass-scale));
+  --_dim: calc(1 - (1 - (var(--glass-dim-thin) + (var(--glass-dim-dense) - var(--glass-dim-thin)) * var(--glass-density, 1))) * min(var(--glass-scale), 1));
+  /* everything drawn on the glass takes the glass ink, through the tokens the rules above already read */
+  --ink: color-mix(in srgb, var(--glass-ink) calc(var(--glass-ink-a) * 100%), transparent);
+  --graphite: color-mix(in srgb, var(--glass-ink) calc(var(--glass-ink-2-a) * 100%), transparent);
+
+  background-color: color-mix(in srgb, var(--glass-tint) min(calc(var(--_tint) * 100%), 100%), transparent);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(calc(var(--glass-sat) * var(--glass-keep, 1))) brightness(var(--_dim));
+  backdrop-filter: blur(var(--glass-blur)) saturate(calc(var(--glass-sat) * var(--glass-keep, 1))) brightness(var(--_dim)) var(--glass-lens,);
+  box-shadow: var(--glass-edge);
+  color: var(--ink);
+}
+.glass[data-rim='t'] { box-shadow: var(--glass-edge-t); }
+.glass[data-rim='b'] { box-shadow: var(--glass-edge-b); }
+.glass[data-glass-live] { transition: --glass-density 240ms cubic-bezier(0.23, 1, 0.32, 1), --glass-keep 240ms cubic-bezier(0.23, 1, 0.32, 1); }
+/* light text adds to what is behind it rather than covering it */
+.glass > * { mix-blend-mode: plus-lighter; }
+.glass::after {
+  content: ''; position: absolute; inset: 0; z-index: -1;
+  border-radius: inherit; background: var(--glass-light); pointer-events: none;
+}
+/* asked for less transparency, or a forced palette: the same tint, solid */
+@media (prefers-reduced-transparency: reduce), (forced-colors: active) {
+  .glass { background-color: var(--glass-tint); -webkit-backdrop-filter: none; backdrop-filter: none; }
+  .glass::after { display: none; }
+  .glass > * { mix-blend-mode: normal; }
+}
+
+/* the one setting: a hairline track, gold where it is filled, a square-cut thumb like every other control */
+.range { display: block; width: 100%; height: 40px; margin: 0; background: none; -webkit-appearance: none; appearance: none; cursor: pointer; }
+.range::-webkit-slider-runnable-track { height: 2px; background: linear-gradient(90deg, var(--gold) var(--fill, 0%), var(--rule) var(--fill, 0%)); }
+.range::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 26px; margin-top: -12px; border-radius: 7px; background: var(--gold); }
+.range::-moz-range-track { height: 2px; background: var(--rule); }
+.range::-moz-range-progress { height: 2px; background: var(--gold); }
+.range::-moz-range-thumb { width: 14px; height: 26px; border: 0; border-radius: 7px; background: var(--gold); }
 
 @media (min-width: 720px) {
   .col { padding-top: 40px; }
-  .h1 { font-size: 42px; }
-  .strip--hero .strip-name { font-size: 52px; }
+  .h1 { font-size: 48px; }
+  .strip--hero .strip-name { font-size: 54px; }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .strip { transition: none; }
-  .strip:active { transform: none; }
+/* ── motion ─────────────────────────────────────────────────── */
+/* Everything moves like liquid or paper: it eases out long, presses spring
+   back, and nothing loops faster than a breath. Reduced motion turns the lot
+   off at the bottom and the page is still whole, because every start state
+   here comes from an animation, never from the base rule. */
+.app {
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --spring: linear(0, 0.009, 0.035 2.1%, 0.141, 0.281 6.7%, 0.723 12.9%, 0.938 16.7%, 1.017, 1.077, 1.121, 1.149 24.3%, 1.159, 1.163, 1.161, 1.154 29.9%, 1.129 32.8%, 1.051 39.6%, 1.017 43.1%, 0.991, 0.977 51%, 0.974 53.8%, 0.975 57.1%, 0.997 69.8%, 1.003 76.9%, 1);
 }
+@property --soak { syntax: '<number>'; inherits: true; initial-value: 1; }
+@property --drift { syntax: '<percentage>'; inherits: true; initial-value: 0%; }
+@property --haze { syntax: '<color>'; inherits: true; initial-value: #8b5c8f; }
+.app { transition: --haze 1.4s var(--ease-out); }
+
+@keyframes rise { from { opacity: 0; translate: 0 14px; } to { opacity: 1; translate: 0 0; } }
+@keyframes rise-r { from { opacity: 0; translate: 26px 0; } to { opacity: 1; translate: 0 0; } }
+@keyframes rise-l { from { opacity: 0; translate: -26px 0; } to { opacity: 1; translate: 0 0; } }
+@keyframes dip { from { opacity: 0; translate: 40px 0; } to { opacity: 1; translate: 0 0; } }
+@keyframes soak { from { --soak: 0; } to { --soak: 1; } }
+@keyframes drift { from { --drift: 0%; } to { --drift: 6%; } }
+@keyframes wake { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
+@keyframes waft { from { transform: scaleY(0.9) skewX(0deg); } to { transform: scaleY(1.1) skewX(-3deg); } }
+@keyframes grow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@keyframes pop { 0% { transform: scale(0.96); } 100% { transform: scale(1); } }
+
+/* the smoke: a canvas drawn small and stretched (see Smoke.tsx) */
+.smoke { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; filter: blur(12px); }
+.col { position: relative; z-index: 1; padding-bottom: calc(110px + env(safe-area-inset-bottom)); }
+.tabs { view-transition-name: tabs; }
+
+/* each page arrives top to bottom, one thing after another */
+.page > * { animation: rise 280ms var(--ease-out) both; animation-delay: calc(var(--n, 0) * 35ms); }
+.page[data-dir='r'] > * { animation-name: rise-r; }
+.page[data-dir='l'] > * { animation-name: rise-l; }
+/* swiped in: the page itself is moving under the finger's spring, so nothing inside fades up from nothing */
+.page[data-dir='s'] > * { animation: none; }
+.page[data-dir='s'] .strip--hero { animation: soak 1500ms var(--ease-out) both, drift 9s 1.8s ease-in-out infinite alternate; }
+.page { will-change: translate, opacity; }
+.page > :nth-child(1) { --n: 0; } .page > :nth-child(2) { --n: 1; } .page > :nth-child(3) { --n: 2; }
+.page > :nth-child(4) { --n: 3; } .page > :nth-child(5) { --n: 4; } .page > :nth-child(6) { --n: 5; }
+.page > :nth-child(7) { --n: 6; } .page > :nth-child(8) { --n: 7; } .page > :nth-child(n + 9) { --n: 8; }
+.rack-row { animation: rise 280ms var(--ease-out) both; animation-delay: calc(min(var(--r, 0), 10) * 35ms); }
+
+/* the strip is dipped as you arrive: it slides in, the stain soaks to the tip,
+   then the juice keeps moving, slowly. The hero leans toward a finger. */
+.strip--hero { animation: dip 900ms var(--ease-out) both, soak 1700ms 200ms var(--ease-out) both, drift 9s 1.8s ease-in-out infinite alternate;
+  will-change: transform; }
+.strip--hero::after { content: ''; position: absolute; inset: 0; pointer-events: none; opacity: 0; transition: opacity 200ms ease;
+  background: radial-gradient(55% 110% at var(--mx, 70%) var(--my, 30%), rgba(255, 255, 255, 0.55), transparent 62%); mix-blend-mode: soft-light; }
+.strip--hero:active::after { opacity: 1; }
+@media (hover: hover) and (pointer: fine) { .strip--hero:hover::after { opacity: 1; } }
+.page--scent .strip--hero { view-transition-name: bottle; }
+
+/* the wake draws itself off the tip, then drifts like it is in air */
+.trail { overflow: visible; }
+.trail-wake { transform-origin: 0 50%; animation: wake 1900ms 350ms var(--ease-out) both, waft 6s 2.3s ease-in-out infinite alternate; }
+.trail-cap { animation: rise 700ms 900ms var(--ease-out) both; }
+
+/* bars and plate cells develop in sequence */
+.bar > i { transform-origin: 0 50%; animation: grow 1100ms var(--ease-out) both; animation-delay: calc(300ms + var(--k, 0) * 45ms); }
+.chroma i { animation: rise 600ms var(--ease-out) both; animation-delay: calc(250ms + var(--k, 0) * 35ms); }
+
+/* controls: press in, spring back out; a chosen one pops */
+.chip, .btn, .rate button, .seg button, .back, .note-link { transition: color 200ms ease, background 200ms ease, box-shadow 200ms ease, transform 160ms var(--ease-out); }
+.chip:active, .btn:active, .rate button:active, .seg button:active, .back:active { transform: scale(0.97); transition-duration: 100ms; }
+.chip[aria-pressed='true'], .rate button[aria-pressed='true'], .seg button[aria-pressed='true'], .btn[aria-pressed='true'] { animation: pop 240ms var(--ease-out); }
+@media (hover: hover) and (pointer: fine) {
+  .note-link:hover { text-decoration-color: var(--gold); }
+  .chip:hover:not([aria-pressed='true']), .btn-line:hover, .back:hover { color: var(--ink); }
+}
+
+/* the page change itself: a short crossfade underneath, the strip travels */
+::view-transition-old(root) { animation: 180ms ease-out both vt-out; }
+::view-transition-new(root) { animation: 240ms cubic-bezier(0.23, 1, 0.32, 1) both vt-in; }
+@keyframes vt-out { to { opacity: 0; } }
+@keyframes vt-in { from { opacity: 0; } }
+/* opening a bottle is occasional (drawer-class, 200-500ms): the row travels into the page */
+::view-transition-group(bottle) { animation-duration: 420ms; animation-timing-function: var(--ease-out, cubic-bezier(0.16, 1, 0.3, 1)); }
+::view-transition-group(tabs) { animation: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+  ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; }
+  .welcome { display: none; }
+}
+
+/* ── grain: a flat dark ground reads as a screen, grain reads as a surface ── */
+.grain { position: fixed; inset: 0; z-index: 0; pointer-events: none; opacity: 0.1; mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.9 0'/></filter><rect width='220' height='220' filter='url(%23n)'/></svg>"); }
+
+/* ── the open ───────────────────────────────────────────────── */
+/* The page beneath holds its first frame until the dissolve begins, so it
+   arrives out of the smoke rather than after it. */
+.app[data-splash='on'] .page > *, .app[data-splash='on'] .strip--hero, .app[data-splash='on'] .trail-wake,
+.app[data-splash='on'] .trail-cap, .app[data-splash='on'] .bar > i, .app[data-splash='on'] .chroma i { animation-play-state: paused; }
+/* The welcome: a fragrance advert. The 3D take fills the screen; the
+   wordmark settles on a soft spring (6% overshoot, the only bounce in the
+   app, because it is seen once per session), the gold rule draws, the line
+   under it arrives last. Out is a slow dissolve with the slightest push in. */
+.welcome { position: fixed; inset: 0; z-index: 60; background: radial-gradient(70% 55% at 50% 42%, #1b1216, #070507 70%); touch-action: manipulation; }
+.welcome[data-out] { animation: welcome-out 620ms var(--ease-out) both; pointer-events: none; }
+@keyframes welcome-out { to { opacity: 0; scale: 1.035; } }
+.welcome-canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+.welcome-card { position: absolute; left: 0; right: 0; bottom: calc(15vh + env(safe-area-inset-bottom)); display: grid; justify-items: center; gap: 16px; }
+.wm { display: flex; font-family: var(--serif); font-weight: 500; font-size: clamp(34px, 11vw, 54px); letter-spacing: 0.36em; padding-left: 0.36em; line-height: 1; color: #f3e6c8; }
+.wm-l { display: inline-block; opacity: 0; translate: 0 0.42em; animation: wm-in 1080ms linear(0, 0.0421, 0.1409, 0.2742, 0.4188, 0.5565, 0.6848, 0.792, 0.8814, 0.95, 0.9985, 1.0319, 1.0517, 1.0608, 1.0623, 1.0587, 1.0518, 1.0431, 1.0343, 1.0256, 1.0181, 1.0115, 1.0062, 1.0023, 0.9995, 0.9976, 0.9966, 0.9961, 0.9961, 0.9964, 0.9969, 0.9974, 0.998) both paused; animation-delay: calc(var(--i) * 70ms + 650ms); }
+@keyframes wm-in { from { opacity: 0; translate: 0 0.42em; } 35% { opacity: 1; } to { opacity: 1; translate: 0 0; } }
+.wm-rule { width: 132px; height: 1px; background: linear-gradient(90deg, transparent, var(--gold), transparent); transform: scaleX(0); animation: grow 900ms var(--ease-out) both paused; animation-delay: 1250ms; }
+.wm-tag { font-family: var(--sans); font-weight: 400; font-size: 12px; letter-spacing: 0.42em; padding-left: 0.42em; text-transform: uppercase; color: rgba(243, 230, 200, 0.72); opacity: 0; animation: rise 700ms var(--ease-out) both paused; animation-delay: 1500ms; }
+.welcome[data-ready] :is(.wm-l, .wm-rule, .wm-tag) { animation-play-state: running; }
+
+/* ── the notes field ────────────────────────────────────────── */
+.nf { position: relative; height: 560px; margin: 18px -8px 0; opacity: 0; transition: opacity 260ms var(--ease-out); }
+.nf[data-ready] { opacity: 1; }
+.nf-note { position: absolute !important; left: 0; top: 0; display: grid !important; place-content: center; justify-items: center; gap: 1px; padding: 3px !important;
+  border-radius: 50% !important; touch-action: none; user-select: none; -webkit-user-select: none; will-change: transform; cursor: grab;
+  border: 1px solid color-mix(in oklab, var(--gold) calc(18% + var(--w) * 62%), var(--rule)) !important;
+  background: radial-gradient(120% 120% at 30% 20%, color-mix(in oklab, var(--gold) calc(var(--w) * 22%), var(--ground-raised)), color-mix(in oklab, var(--ground) 82%, transparent)) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 8px 22px rgba(0, 0, 0, 0.35); }
+.nf-note:active { cursor: grabbing; }
+.nf-note { transition: scale 240ms var(--ease-out); }
+@media (hover: hover) and (pointer: fine) { .nf-note:hover { scale: 1.08; z-index: 2; } }
+.nf-name { font-family: var(--serif); font-weight: 500; font-size: 13.5px; line-height: 1.12; text-align: center; color: var(--ink); }
+.nf-count { font-size: 12px; color: var(--gold); font-variant-numeric: tabular-nums; }
+
+/* ── the holographic card ───────────────────────────────────── */
+/* A surface, not a fill: the bottle's colour from one corner, a depth pool
+   from the other, grain, a lit rim, and a foil that follows the finger. */
+.holo { position: relative; overflow: hidden; padding: 22px 22px 20px; border-radius: var(--r-l); isolation: isolate; will-change: transform;
+  --stain: var(--plum);
+  background:
+    radial-gradient(120% 90% at 12% 0%, color-mix(in oklab, var(--stain) 62%, transparent), transparent 62%),
+    radial-gradient(100% 90% at 100% 100%, color-mix(in oklab, var(--stain) 26%, #000), transparent 70%),
+    linear-gradient(160deg, #201623, #0c080e);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.5); }
+.holo::before { content: ''; position: absolute; inset: 0; border-radius: inherit; padding: 1px; pointer-events: none; z-index: 2;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.04) 40%, color-mix(in oklab, var(--gold) 60%, transparent));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0); }
+.holo-foil { position: absolute; inset: -20%; z-index: 1; pointer-events: none; mix-blend-mode: color-dodge; opacity: 0.14; transition: opacity 220ms ease;
+  background: linear-gradient(115deg, transparent 30%, var(--iris-1) 42%, var(--iris-2) 50%, var(--iris-3) 58%, transparent 70%);
+  background-size: 240% 240%; background-position: var(--mx, 60%) var(--my, 40%); }
+.holo:active .holo-foil { opacity: 0.34; }
+@media (hover: hover) and (pointer: fine) { .holo:hover .holo-foil { opacity: 0.34; } }
+.holo-grain { position: absolute; inset: 0; z-index: 1; pointer-events: none; opacity: 0.16; mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.9 0'/></filter><rect width='160' height='160' filter='url(%23n)'/></svg>"); }
+.holo > :not(.holo-foil, .holo-grain) { position: relative; z-index: 3; }
+.holo-head { display: block; margin-bottom: 16px; }
+.holo-house { display: block; font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--graphite); }
+.holo-name { display: block; font-family: var(--serif); font-style: italic; font-size: 30px; line-height: 1.05; color: var(--ink); margin-top: 2px; }
+.holo-body { display: grid; grid-template-columns: 3px 1fr; gap: 14px; }
+.holo-vol { border-radius: 2px; background: linear-gradient(180deg, color-mix(in oklab, var(--gold-light) 25%, transparent), var(--gold) 55%, var(--gold)); transform-origin: 50% 0; animation: vol 1200ms 300ms var(--ease-out) both; }
+@keyframes vol { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+.holo-layer + .holo-layer { margin-top: 12px; }
+.holo-rest { margin-top: 14px; }
+.holo-body + .holo-rest { padding-top: 12px; border-top: 1px solid rgba(255, 255, 255, 0.08); }
+.holo-label { display: block; font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--graphite); margin-bottom: 2px; }
+.holo-notes { display: flex; flex-wrap: wrap; gap: 2px 14px; }
+.holo-note { font-family: var(--serif); font-size: 17px; color: var(--ink); min-height: 32px; text-decoration: underline; text-decoration-color: rgba(255, 255, 255, 0.18); text-underline-offset: 5px; }
+@media (prefers-reduced-motion: reduce) { .nf { opacity: 1; } }
+
+/* ── the cabinet ────────────────────────────────────────────── */
+.cabinet { position: relative; margin: 20px -6px 0; aspect-ratio: 1 / 1.08; border-radius: var(--r-xl); overflow: hidden; background: #0d090e; isolation: isolate;
+  box-shadow: inset 0 1px 0.5px rgba(255, 255, 255, 0.18), inset 0 0 0 1px rgba(255, 255, 255, 0.06), 0 24px 50px -18px rgba(0, 0, 0, 0.8); }
+.cabinet--waiting { background: radial-gradient(60% 50% at 50% 28%, rgba(255, 214, 160, 0.14), transparent 70%), #0d090e; }
+.cabinet-canvas { display: block; width: 100%; height: 100%; touch-action: pan-y; cursor: grab; }
+.cabinet-canvas:active { cursor: grabbing; }
+.cabinet-cap { position: absolute; left: 10px; right: 10px; bottom: 10px; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 10px 10px 16px; border-radius: var(--r-l); }
+.cabinet-who { display: grid; min-width: 0; }
+.cabinet-house { font-size: 11.5px; font-weight: 500; letter-spacing: 0.18em; text-transform: uppercase; color: var(--graphite); }
+.cabinet-name { font-family: var(--serif); font-weight: 500; font-size: 22px; line-height: 1.15; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; animation: rise 220ms var(--ease-out) both; }
+
+/* ── notes as drops of liquid glass ─────────────────────────── */
+.nf-note {
+  border: 0 !important;
+  background:
+    radial-gradient(60% 50% at 32% 24%, rgba(255, 255, 255, 0.24), transparent 70%),
+    radial-gradient(90% 90% at 70% 85%, color-mix(in oklab, var(--gold) calc(var(--w) * 30%), transparent), transparent 70%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.02)) !important;
+  -webkit-backdrop-filter: blur(10px) saturate(1.6); backdrop-filter: blur(10px) saturate(1.6);
+  box-shadow: inset 0 1.5px 1px rgba(255, 255, 255, 0.35), inset 0 -6px 14px rgba(0, 0, 0, 0.35), inset 0 0 0 1px color-mix(in oklab, var(--gold) calc(10% + var(--w) * 45%), rgba(255, 255, 255, 0.06)), 0 12px 26px -10px rgba(0, 0, 0, 0.7) !important;
+}
+
+/* a pushed screen (an opened bottle) has no tab bar: it steps down out of the way */
+.tabs { transition: transform 260ms var(--ease-out), opacity 200ms ease; }
+.tabs[data-away] { transform: translateY(calc(100% + 24px)); opacity: 0; pointer-events: none; }
+
+/* family marks take the one accent, not their own colours */
+.chip svg { color: var(--gold) !important; }
+
+/* option chips are words. The chosen one sits in a lens of glass whose edge
+   feathers away: neither a box nor a capsule. */
+.chip {
+  position: relative; isolation: isolate; min-height: 44px; padding: 0 14px;
+  background: none !important; box-shadow: none !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important;
+}
+.chip::before {
+  content: ''; position: absolute; inset: 2px -4px; z-index: -1; opacity: 0; transform: scale(0.92);
+  background:
+    radial-gradient(60% 70% at 35% 25%, rgba(255, 255, 255, 0.28), transparent 70%),
+    radial-gradient(closest-side, color-mix(in oklab, var(--gold) 34%, transparent), color-mix(in oklab, var(--gold) 10%, transparent));
+  -webkit-mask: radial-gradient(closest-side, #000 62%, transparent 100%); mask: radial-gradient(closest-side, #000 62%, transparent 100%);
+  transition: opacity 200ms ease, transform 200ms var(--ease-out);
+}
+.chip[aria-pressed='true'] { color: var(--gold-light); animation: none; }
+.chip[aria-pressed='true']::before { opacity: 1; transform: none; }
+
+/* the score: one gauge, a 44pt target the whole width */
+.gauge { position: relative; }
+.gauge-input { display: block; width: 100%; height: 44px; margin: 0; background: none; -webkit-appearance: none; appearance: none; cursor: pointer; touch-action: pan-y; }
+.gauge-input::-webkit-slider-runnable-track { height: 4px; border-radius: 2px; background: linear-gradient(90deg, var(--gold) var(--fill, 0%), var(--rule) var(--fill, 0%)); }
+.gauge-input::-moz-range-track { height: 4px; border-radius: 2px; background: var(--rule); }
+.gauge-input::-moz-range-progress { height: 4px; border-radius: 2px; background: var(--gold); }
+.gauge-input::-webkit-slider-thumb { -webkit-appearance: none; width: 30px; height: 30px; margin-top: -13px; border-radius: 50%;
+  background: radial-gradient(60% 60% at 35% 30%, #fff8e8, var(--gold-light) 45%, var(--gold)); box-shadow: inset 0 1px 0.5px rgba(255, 255, 255, 0.8), 0 6px 16px -4px rgba(0, 0, 0, 0.7); }
+.gauge-input::-moz-range-thumb { width: 30px; height: 30px; border: 0; border-radius: 50%; background: var(--gold); }
+.gauge[data-unset] .gauge-input::-webkit-slider-thumb { background: radial-gradient(60% 60% at 35% 30%, rgba(255,255,255,0.5), rgba(255,255,255,0.12)); }
+.gauge-ticks { display: flex; justify-content: space-between; padding: 0 9px; font-size: 12px; color: var(--graphite); font-variant-numeric: tabular-nums; }
+.gauge-ticks [data-on] { color: var(--gold-light); font-weight: 600; }
+.text-btn { color: var(--graphite); text-decoration: underline; text-underline-offset: 4px; min-height: 32px; }
+@media (hover: hover) and (pointer: fine) { .chip:not([aria-pressed='true']):hover, .text-btn:hover { color: var(--ink); } }
+
+/* the opened bottle: the real bottle in 3D, named beneath it */
+.top-back { corner-shape: round; }
+.bottle-hero { position: relative; margin: 6px -8px 0; display: grid; }
+.bottle-hero::before { content: ''; position: absolute; inset: 10% 8% 22%; z-index: -1; background: radial-gradient(closest-side, rgba(255, 214, 160, 0.13), transparent); }
+.bottle-hero-canvas { width: 100%; height: 340px; display: block; touch-action: pan-y; cursor: grab; opacity: 0; transition: opacity 260ms var(--ease-out); }
+.bottle-hero[data-lit] .bottle-hero-canvas { opacity: 1; }
+.bottle-hero-cap { display: grid; justify-items: center; gap: 4px; margin-top: -6px; text-align: center; }
+.bh-house { font-size: 11.5px; font-weight: 500; letter-spacing: 0.22em; padding-left: 0.22em; text-transform: uppercase; color: var(--graphite); }
+.bh-name { font-family: var(--serif); font-weight: 500; font-size: 40px; line-height: 1.02; letter-spacing: -0.02em; }
+.bh-family { font-size: 13px; color: var(--graphite); }
+.page--scent .bottle-hero { view-transition-name: bottle; }
+
+/* tab: icon over label, the iOS order */
+.tabs button { display: grid; justify-items: center; align-content: center; gap: 2px; font-size: 11px; letter-spacing: 0.01em; }
+.tabs button svg { display: block; }
+
+/* chosen chip: gold word over a short gold hairline that draws out from the centre.
+   No halo, no box, no capsule. */
+.chip::before { content: none; }
+.chip::after {
+  content: ''; position: absolute; left: 14px; right: 14px; bottom: 8px; height: 1.5px; border-radius: 1px;
+  background: var(--gold); transform: scaleX(0); transition: transform 220ms var(--ease-out);
+}
+.chip[aria-pressed='true']::after { transform: scaleX(1); }
+/* a row that scrolls sideways says so: its far edge fades */
+.chips { -webkit-mask: linear-gradient(90deg, #000 88%, transparent); mask: linear-gradient(90deg, #000 88%, transparent); }
