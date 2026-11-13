@@ -153,7 +153,7 @@ export const SEED_SCENTS: Scent[] = [
     application:'Chest and behind ears only, this beast projects. Less is power.',
     effect:'Unforgettable presence. Rooms remember you.' },
 
-  { id: 'lelabo-tabac26', brand: 'Le Labo', name: 'Tabac 26', families: ['woody','smoky'],
+  { id: 'lelabo-tabac28', brand: 'Le Labo', name: 'Tabac 28', families: ['woody','smoky'],
     ingredientKey: 'tobacco,hay',
     accords: [{name:'tobacco',strength:.7},{name:'woody',strength:.6},{name:'hay',strength:.5}],
     notes: [{name:'Bay Leaf',layer:'top'},{name:'Fig',layer:'heart'},{name:'Hay',layer:'heart'},{name:'Tobacco',layer:'base'},{name:'Cedar',layer:'base'}],

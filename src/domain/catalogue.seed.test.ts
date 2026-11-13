@@ -21,7 +21,7 @@ describe('SEED_SCENTS', () => {
     expect(byId.get('aesop-hwyl')?.aura).toBe('#4a5240')
     expect(byId.get('byredo-mojaveghost')?.mood).toBe('Ethereal')
     expect(byId.get('iaq-spanishtobacco')?.profile?.longevity).toBe(10)
-    expect(byId.get('lelabo-tabac26')).toBeDefined()
+    expect(byId.get('lelabo-tabac28')).toBeDefined()
     expect(byId.get('tomford-noirextreme')?.profile?.warmth).toBe(10)
   })
 

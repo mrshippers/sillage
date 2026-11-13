@@ -103,7 +103,7 @@ export const FRAGRANCES: Fragrance[] = [
     description: "Leather armchair in a private library. Saffron smoke and old money.",
     pulsePoints: "Chest and behind ears only, this beast projects. Less is power.",
     effect: "Unforgettable presence. Rooms remember you." },
-  { id: 8, name: "Le Labo Tabac 26", house: "Le Labo", short: "Tabac 26", notes: ["Bay Leaf", "Fig", "Hay", "Tobacco", "Cedar"], family: "Woody Tobacco", season: ["Autumn", "Winter"], mood: "Intellectual", color: "#6b5e4f",
+  { id: 8, name: "Le Labo Tabac 28", house: "Le Labo", short: "Tabac 28", notes: ["Bay Leaf", "Fig", "Hay", "Tobacco", "Cedar"], family: "Woody Tobacco", season: ["Autumn", "Winter"], mood: "Intellectual", color: "#6b5e4f",
     weight: "medium", warmth: 7, freshness: 3, projection: 5, longevity: 7, sweet: 2, dark: 6, floral: 0, spicy: 3, green: 4, woody: 8, smoky: 3, musky: 1, resinous: 2,
     occasions: ["reading", "gallery", "solo"],
     weather: ["cold", "overcast", "rainy"],
